@@ -1,0 +1,16 @@
+1. Restricción de solapamiento de horarios
+Qué significa?  No se puede reservar una cancha en un horario ya ocupado.
+Ejemplo: Si la cancha "Y" ya está reservada el 20/09/2025 de 19:00 a 20:00, otro usuario no debería poder reservarla de 19:30 a 20:30.
+
+2. Validación de duración de la reserva
+Qué significa? Toda reserva debe cumplir con una duración mínima y máxima.
+Ejemplo: La cancha solo se alquila en bloques de al menos 1 hora y máximo 3 horas.
+
+3. Validación de horario de apertura y cierre
+Qué significa? Una reserva debe estar dentro del horario de funcionamiento de la cancha.
+Ejemplo: Si la cancha abre a las 08:00 y cierra a las 23:00, no se puede reservar de 22:30 a 23:30.
+
+4. Inferencia sobre penalización por no presentarse (no-show)
+Qué significa? El sistema puede inferir un comportamiento negativo si el usuario no se presenta.
+Ejemplo: Si un usuario tiene 3 reservas con estado NO_SHOW en el último mes, el sistema le bloquea nuevas reservas hasta pagar una multa
+o hablar con el administrador.
