@@ -36,14 +36,22 @@ Gerente del Polideportivo: Busca optimizar la ocupación de las canchas, aplicar
 
 Pregunta: “¿Puede autorizarse la reserva de la cancha Y para el cliente X en la fecha Z y horario A-B, respetando las reglas de disponibilidad, anticipación, duración máxima y pago?”
 Justificación:
-Esta pregunta encapsula la decisión más crítica del sistema porque:
-Disponibilidad en tiempo real: Debe verificar instantáneamente si la cancha está libre en el horario solicitado, evitando reservas duplicadas.
-Validación integral: No solo verifica disponibilidad física, sino que evalúa múltiples factores:
+-Esta pregunta encapsula la decisión más crítica del sistema porque:
+
+La disponibilidad en tiempo real debe verificar instantáneamente si la cancha está libre en el horario solicitado, evitando reservas duplicadas.
+
+-Validación integral no solo verifica disponibilidad física, sino que evalúa múltiples factores tales como:
+
 Estado del cliente (historial de no-shows, clientes frecuentes)
+
 Políticas de pago (seña requerida, descuentos aplicables)
+
 Restricciones horarias y reglas del negocio
-Confirmación inmediata: Permite tomar una decisión definitiva en el momento, eliminando la incertidumbre del sistema manual actual.
-Impacto directo: Esta decisión afecta directamente los ingresos del polideportivo, la satisfacción del cliente y la eficiencia operativa.
+
+-Una confirmación inmediata nos permite tomar una decisión definitiva en el momento, eliminando la incertidumbre del sistema manual actual.
+
+-Impacto directo: Esta decisión afecta directamente los ingresos del polideportivo, la satisfacción del cliente y la eficiencia operativa.
+
 Decisiones secundarias que se derivan:
 ¿Qué descuentos aplicar según el perfil del cliente?
 ¿Requiere seña o pago completo por adelantado?
