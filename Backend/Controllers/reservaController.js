@@ -1,5 +1,5 @@
 // src/controllers/reservaController.js - Lógica principal de reservas
-const db = require('../Config/database');
+const db = require('../Config/dataBase');
 const moment = require('moment');
 
 class ReservaController {

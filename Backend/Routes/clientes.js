@@ -83,7 +83,7 @@ router.put('/:id/estado', [
 // GET /api/clientes/tipos - Obtener tipos de cliente disponibles
 router.get('/tipos/lista', async (req, res) => {
     try {
-        const db = require('../Config/database');
+        const db = require('../Config/dataBase');
         
         const tipos = await db.all(`
             SELECT id, nombre, descuento_porcentaje, min_reservas_mes, descripcion
@@ -108,7 +108,7 @@ router.get('/tipos/lista', async (req, res) => {
 // POST /api/clientes/actualizar-tipos - Actualizar automáticamente tipos de cliente
 router.post('/actualizar-tipos', async (req, res) => {
     try {
-        const db = require('../config/database');
+        const db = require('../Config/dataBase');
         
         // Obtener configuraciones
         const reservasFrec = await db.getConfiguracion('min_reservas_frecuente') || 4;
@@ -125,3 +125,5 @@ router.post('/actualizar-tipos', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor.' });
     }
 });
+
+module.exports = router;

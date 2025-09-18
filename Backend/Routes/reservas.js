@@ -42,7 +42,7 @@ router.get('/:id', [
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const db = require('../Config/database');
+        const db = require('../Config/dataBase');
         
         const reserva = await db.get(`
             SELECT 
@@ -130,7 +130,7 @@ router.put('/:id/completar', [
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const db = require('../Config/database');
+        const db = require('../Config/dataBase');
         
         const reserva = await db.get('SELECT * FROM reservas WHERE id = ?', [id]);
         
@@ -171,7 +171,7 @@ router.put('/:id/no-show', [
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const db = require('../Config/database');
+        const db = require('../Config/dataBase');
         
         const reserva = await db.get('SELECT * FROM reservas WHERE id = ?', [id]);
         
@@ -216,7 +216,7 @@ router.delete('/:id', [
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const db = require('../Config/database');
+        const db = require('../Config/dataBase');
         
         const reserva = await db.get('SELECT * FROM reservas WHERE id = ?', [id]);
         
