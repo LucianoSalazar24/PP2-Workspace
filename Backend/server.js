@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middlewares de seguridad y configuración
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:8080',
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true
 }));
 
@@ -21,14 +21,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Importar rutas
-const reservasRoutes = require('./src/routes/reservas');
-const clientesRoutes = require('./src/routes/clientes');
+/*const reservasRoutes = require('./src/routes/reservas');
+const clientesRoutes = require('./src/routes/clientes');*/
 const canchasRoutes = require('./src/routes/canchas');
 const configRoutes = require('./src/routes/config');
 
 // Usar rutas de la API
-app.use('/api/reservas', reservasRoutes);
-app.use('/api/clientes', clientesRoutes);
+/*app.use('/api/reservas', reservasRoutes);
+app.use('/api/clientes', clientesRoutes);*/
 app.use('/api/canchas', canchasRoutes);
 app.use('/api/config', configRoutes);
 

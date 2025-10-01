@@ -1,16 +1,9 @@
 FICHA DE PROYECTO - Equipo N° 2
 
-Integrantes:
-
-Derek Del Canto
-
-Luciano Salazar
-
+INTEGRANTES: Derek Del Canto y Luciano Salazar
 
 
 Problemática Elegida: “Sistema de Reservas de Canchas de Fútbol”
-
-
 
 1. Descripción del Problema (El Dolor):
 
@@ -29,7 +22,6 @@ Empleado de Recepción: Requiere una herramienta simple para gestionar reservas,
 
 
 Gerente del Polideportivo: Busca optimizar la ocupación de las canchas, aplicar descuentos a clientes frecuentes y asegurar el cumplimiento de reglas de negocio (ej: cancelaciones, penalizaciones).
-
 
 
 3. La Decisión Clave del Software:
