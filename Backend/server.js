@@ -7,7 +7,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middlewares de seguridad y configuración
+// Middlewares de configuración
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true
@@ -18,19 +18,17 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Servir archivos estáticos del frontend
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.join(__dirname, '../Frontend')));
 
-// Importar rutas
-/*const reservasRoutes = require('./src/routes/reservas');
-const clientesRoutes = require('./src/routes/clientes');*/
-const canchasRoutes = require('./src/routes/canchas');
-const configRoutes = require('./src/routes/config');
+// Importar rutas - Ajustado a tu estructura de carpetas
+const reservasRoutes = require('./Routes/reservas');
+const clientesRoutes = require('./Routes/clientes');
+const canchasRoutes = require('./Routes/canchas');
 
 // Usar rutas de la API
-/*app.use('/api/reservas', reservasRoutes);
-app.use('/api/clientes', clientesRoutes);*/
+app.use('/api/reservas', reservasRoutes);
+app.use('/api/clientes', clientesRoutes);
 app.use('/api/canchas', canchasRoutes);
-app.use('/api/config', configRoutes);
 
 // Ruta de prueba
 app.get('/api/test', (req, res) => {
@@ -43,12 +41,16 @@ app.get('/api/test', (req, res) => {
 
 // Ruta raíz - servir la página principal
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/index.html'));
-});
-
-// Ruta para el panel de administración
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/pages/admin.html'));
+    res.json({
+        message: 'Sistema de Reservas de Canchas de Fútbol',
+        version: '1.0.0',
+        endpoints: {
+            reservas: '/api/reservas',
+            clientes: '/api/clientes',
+            canchas: '/api/canchas',
+            test: '/api/test'
+        }
+    });
 });
 
 // Middleware de manejo de errores
@@ -65,10 +67,11 @@ app.use((err, req, res, next) => {
     }
     
     // Error de base de datos
-    if (err.code === 'SQLITE_CONSTRAINT') {
+    if (err.code && err.code.includes('ER_')) {
         return res.status(409).json({
             success: false,
-            message: 'Conflicto en los datos - posible duplicado'
+            message: 'Error en la base de datos',
+            details: err.message
         });
     }
     
@@ -87,36 +90,44 @@ app.use('*', (req, res) => {
             message: 'Endpoint no encontrado'
         });
     } else {
-        res.sendFile(path.join(__dirname, '../frontend/index.html'));
+        res.status(404).json({
+            success: false,
+            message: 'Página no encontrada'
+        });
     }
 });
 
 // Inicializar servidor
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-    console.log(`📱 Frontend: http://localhost:${PORT}`);
-    console.log(`🔧 API: http://localhost:${PORT}/api`);
+app.listen(PORT, async () => {
+    console.log('========================================');
+    console.log(`Servidor corriendo en puerto ${PORT}`);
+    console.log(`URL: http://localhost:${PORT}`);
+    console.log(`API: http://localhost:${PORT}/api`);
+    console.log('========================================');
     
     // Inicializar base de datos
-    const db = require('./src/config/database');
-    db.initialize().then(() => {
-        console.log('✅ Base de datos inicializada correctamente');
-    }).catch(err => {
-        console.error('❌ Error inicializando base de datos:', err);
-    });
+    try {
+        const db = require('./Config/dataBase');
+        await db.initialize();
+        console.log('Base de datos conectada exitosamente');
+    } catch (err) {
+        console.error('Error conectando base de datos:', err.message);
+        console.log('Asegurate de que XAMPP este corriendo');
+    }
 });
 
 // Manejo de cierre graceful
-process.on('SIGINT', () => {
-    console.log('\n🛑 Cerrando servidor...');
-    const db = require('./src/config/database');
-    db.close().then(() => {
-        console.log('✅ Conexiones cerradas correctamente');
+process.on('SIGINT', async () => {
+    console.log('\nCerrando servidor...');
+    try {
+        const db = require('./Config/dataBase');
+        await db.close();
+        console.log('Conexiones cerradas correctamente');
         process.exit(0);
-    }).catch(err => {
-        console.error('❌ Error cerrando conexiones:', err);
+    } catch (err) {
+        console.error('Error cerrando conexiones:', err);
         process.exit(1);
-    });
+    }
 });
 
 module.exports = app;
