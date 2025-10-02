@@ -1,4 +1,4 @@
-// src/config/database.js - Configuración y conexión a MariaDB (driver oficial)
+// ./config/database.js - Configuración y conexión a MariaDB (driver oficial)
 const mariadb = require('mariadb');
 const fs = require('fs');
 const path = require('path');
