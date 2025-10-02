@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservar Cancha - FutbolReservas</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">⚽</span>
+                <h1>FutbolReservas</h1>
+            </div>
+            <nav class="nav">
+                <a href="../index.html" class="nav-link">Inicio</a>
+                <a href="reservar.html" class="nav-link active">Reservar</a>
+                <a href="admin.html" class="nav-link">Panel Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <section style="padding: 3rem 0; background-color: var(--light-bg);">
+        <div class="container">
+            <h2 class="section-title">Reservar Cancha</h2>
+            
+            <div class="card" style="max-width: 800px; margin: 0 auto;">
+                <div class="card-body">
+                    <form id="formReserva">
+                        <!-- Paso 1: Información del Cliente -->
+                        <div id="paso1" class="form-section">
+                            <h3 class="mb-3">Paso 1: Información del Cliente</h3>
+                            
+                            <div class="form-group">
+                                <label class="form-label required" for="telefono">Teléfono</label>
+                                <input type="tel" id="telefono" class="form-input" 
+                                       placeholder="Ej: 1123456789" required>
+                                <small class="form-help">Ingresá tu teléfono para buscar tus datos o crear un nuevo cliente</small>
+                            </div>
+                            
+                            <button type="button" id="btnBuscarCliente" class="btn btn-secondary">
+                                Buscar Cliente
+                            </button>
+                            
+                            <div id="datosCliente" class="d-none mt-3">
+                                <div class="form-group">
+                                    <label class="form-label required" for="nombre">Nombre</label>
+                                    <input type="text" id="nombre" class="form-input" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label required" for="apellido">Apellido</label>
+                                    <input type="text" id="apellido" class="form-input" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="email">Email (opcional)</label>
+                                    <input type="email" id="email" class="form-input">
+                                </div>
+                                
+                                <button type="button" id="btnSiguiente1" class="btn btn-primary">
+                                    Siguiente
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Paso 2: Selección de Cancha y Horario -->
+                        <div id="paso2" class="form-section d-none">
+                            <h3 class="mb-3">Paso 2: Selección de Cancha y Horario</h3>
+                            
+                            <div class="form-group">
+                                <label class="form-label required" for="fecha">Fecha</label>
+                                <input type="date" id="fecha" class="form-input" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label required" for="cancha">Cancha</label>
+                                <select id="cancha" class="form-select" required>
+                                    <option value="">Seleccionar cancha...</option>
+                                </select>
+                            </div>
+                            
+                            <div id="disponibilidadContainer" class="d-none">
+                                <h4 class="mt-3 mb-2">Disponibilidad</h4>
+                                <div id="horariosDisponibles" class="grid grid-3 gap-2"></div>
+                            </div>
+                            
+                            <div id="seleccionHorario" class="d-none mt-3">
+                                <div class="form-group">
+                                    <label class="form-label required" for="horaInicio">Hora de Inicio</label>
+                                    <input type="time" id="horaInicio" class="form-input" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label required" for="horaFin">Hora de Fin</label>
+                                    <input type="time" id="horaFin" class="form-input" required>
+                                </div>
+                            </div>
+                            
+                            <div class="flex-between mt-3">
+                                <button type="button" id="btnVolver1" class="btn btn-outline">
+                                    Volver
+                                </button>
+                                <button type="button" id="btnSiguiente2" class="btn btn-primary">
+                                    Siguiente
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Paso 3: Confirmación y Resumen -->
+                        <div id="paso3" class="form-section d-none">
+                            <h3 class="mb-3">Paso 3: Confirmación</h3>
+                            
+                            <div id="resumenReserva" class="card">
+                                <div class="card-body">
+                                    <h4 class="mb-3">Resumen de la Reserva</h4>
+                                    <div id="detallesResumen"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-3">
+                                <label class="form-label" for="observaciones">Observaciones</label>
+                                <textarea id="observaciones" class="form-textarea" 
+                                          placeholder="Notas adicionales (opcional)"></textarea>
+                            </div>
+                            
+                            <div class="flex-between mt-3">
+                                <button type="button" id="btnVolver2" class="btn btn-outline">
+                                    Volver
+                                </button>
+                                <button type="submit" id="btnConfirmar" class="btn btn-primary btn-large">
+                                    Confirmar Reserva
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 FutbolReservas - Sistema de Reservas de Canchas</p>
+        </div>
+    </footer>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/reservas.js"></script>
+</body>
+</html>

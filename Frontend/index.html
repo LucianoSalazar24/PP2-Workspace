@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserva de Canchas de Fútbol</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+    <!-- Header/Navegación -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">⚽</span>
+                <h1>FutbolReservas</h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link active">Inicio</a>
+                <a href="pages/reservar.html" class="nav-link">Reservar</a>
+                <a href="pages/admin.html" class="nav-link">Panel Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h2 class="hero-title">Reservá tu Cancha de Fútbol</h2>
+            <p class="hero-subtitle">Sistema rápido, fácil y confiable para reservar canchas</p>
+            <a href="pages/reservar.html" class="btn btn-primary btn-large">
+                Hacer una Reserva
+            </a>
+        </div>
+    </section>
+
+    <!-- Características -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">¿Por qué elegirnos?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📅</div>
+                    <h3>Reserva Online</h3>
+                    <p>Reservá desde cualquier lugar, las 24 horas del día. Sin necesidad de llamar por teléfono.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Confirmación Inmediata</h3>
+                    <p>Obtené confirmación instantánea de tu reserva. Sin esperas ni confusiones.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Descuentos por Frecuencia</h3>
+                    <p>Los clientes frecuentes obtienen descuentos especiales automáticamente.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏟️</div>
+                    <h3>Canchas de Calidad</h3>
+                    <p>Canchas con césped sintético de última generación, perfectamente mantenidas.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Nuestras Canchas -->
+    <section class="canchas-preview">
+        <div class="container">
+            <h2 class="section-title">Nuestras Canchas</h2>
+            <div id="canchasContainer" class="canchas-grid">
+                <!-- Las canchas se cargarán dinámicamente aquí -->
+                <div class="loader-container">
+                    <div class="loader">Cargando canchas...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cómo Funciona -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">¿Cómo Funciona?</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Elegí tu Cancha</h3>
+                    <p>Seleccioná la cancha que mejor se adapte a tus necesidades</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Seleccioná Fecha y Horario</h3>
+                    <p>Verificá la disponibilidad y elegí el horario que prefieras</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Completá tus Datos</h3>
+                    <p>Ingresá tu información de contacto</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Confirmá y Pagá</h3>
+                    <p>Recibí tu confirmación y disfrutá del partido</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Información de Contacto -->
+    <section class="contact-info">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <div class="contact-icon">📍</div>
+                    <h3>Ubicación</h3>
+                    <p>Buenos Aires, Argentina</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">⏰</div>
+                    <h3>Horarios</h3>
+                    <p>Lunes a Domingo<br>08:00 - 23:00</p>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-icon">📞</div>
+                    <h3>Contacto</h3>
+                    <p>Reservá llamando al<br>(011) 1234-5678</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 FutbolReservas - Sistema de Reservas de Canchas</p>
+            <p>Desarrollado por Luciano Salazar</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        // Cargar canchas disponibles al iniciar la página
+        document.addEventListener('DOMContentLoaded', async () => {
+            await cargarCanchas();
+        });
+
+        async function cargarCanchas() {
+            const container = document.getElementById('canchasContainer');
+            
+            try {
+                const response = await CanchasAPI.obtenerTodas();
+                
+                if (response.success && response.data.length > 0) {
+                    container.innerHTML = '';
+                    
+                    response.data.forEach(cancha => {
+                        const canchaCard = crearCanchaCard(cancha);
+                        container.appendChild(canchaCard);
+                    });
+                } else {
+                    container.innerHTML = '<p class="no-data">No hay canchas disponibles en este momento.</p>';
+                }
+                
+            } catch (error) {
+                console.error('Error cargando canchas:', error);
+                container.innerHTML = '<p class="error-message">Error al cargar las canchas. Por favor, intenta nuevamente.</p>';
+            }
+        }
+
+        function crearCanchaCard(cancha) {
+            const card = document.createElement('div');
+            card.className = 'cancha-card';
+            
+            const capacidadTexto = cancha.capacidad === 22 ? 'Fútbol 11' : 
+                                   cancha.capacidad === 14 ? 'Fútbol 7' : 
+                                   'Fútbol 5';
+            
+            card.innerHTML = `
+                <div class="cancha-header">
+                    <h3>${cancha.nombre}</h3>
+                    <span class="cancha-badge ${cancha.estado}">${cancha.estado}</span>
+                </div>
+                <div class="cancha-body">
+                    <p class="cancha-capacidad">👥 ${capacidadTexto} (${cancha.capacidad} jugadores)</p>
+                    <p class="cancha-precio">${MoneyUtils.formato(cancha.precio_por_hora)}/hora</p>
+                    <p class="cancha-descripcion">${cancha.descripcion || 'Cancha de excelente calidad'}</p>
+                </div>
+                <div class="cancha-footer">
+                    <a href="pages/reservar.html?cancha=${cancha.id}" class="btn btn-primary btn-block">
+                        Reservar Ahora
+                    </a>
+                </div>
+            `;
+            
+            return card;
+        }
+    </script>
+</body>
+</html>

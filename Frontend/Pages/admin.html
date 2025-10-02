@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - FutbolReservas</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">⚽</span>
+                <h1>FutbolReservas - Admin</h1>
+            </div>
+            <nav class="nav">
+                <a href="../index.html" class="nav-link">Inicio</a>
+                <a href="reservar.html" class="nav-link">Reservar</a>
+                <a href="admin.html" class="nav-link active">Panel Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <aside class="admin-sidebar">
+            <nav class="admin-nav">
+                <button class="admin-nav-btn active" data-section="dashboard">
+                    📊 Dashboard
+                </button>
+                <button class="admin-nav-btn" data-section="reservas">
+                    📅 Reservas
+                </button>
+                <button class="admin-nav-btn" data-section="clientes">
+                    👥 Clientes
+                </button>
+                <button class="admin-nav-btn" data-section="canchas">
+                    🏟️ Canchas
+                </button>
+            </nav>
+        </aside>
+
+        <main class="admin-content">
+            <!-- Dashboard -->
+            <section id="dashboard" class="admin-section active">
+                <h2>Dashboard</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-info">
+                            <h3 id="statReservasHoy">-</h3>
+                            <p>Reservas Hoy</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <h3 id="statIngresosMes">-</h3>
+                            <p>Ingresos del Mes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <h3 id="statClientes">-</h3>
+                            <p>Total Clientes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <h3 id="statOcupacion">-</h3>
+                            <p>Ocupación Hoy</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h3>Reservas de Hoy</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="reservasHoyContainer">
+                            <div class="loader-container">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reservas -->
+            <section id="reservas" class="admin-section">
+                <div class="section-header">
+                    <h2>Gestión de Reservas</h2>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="filters-row">
+                            <input type="date" id="filtroFecha" class="form-input" 
+                                   placeholder="Filtrar por fecha">
+                            <select id="filtroEstado" class="form-select">
+                                <option value="">Todos los estados</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="confirmada">Confirmada</option>
+                                <option value="cancelada">Cancelada</option>
+                                <option value="completada">Completada</option>
+                                <option value="no_show">No Show</option>
+                            </select>
+                            <button id="btnFiltrarReservas" class="btn btn-secondary">
+                                Buscar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div id="reservasTableContainer">
+                            <div class="loader-container">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Clientes -->
+            <section id="clientes" class="admin-section">
+                <div class="section-header">
+                    <h2>Gestión de Clientes</h2>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <input type="text" id="buscarCliente" class="form-input" 
+                               placeholder="Buscar por nombre, teléfono o email...">
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div id="clientesTableContainer">
+                            <div class="loader-container">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Canchas -->
+            <section id="canchas" class="admin-section">
+                <div class="section-header">
+                    <h2>Gestión de Canchas</h2>
+                </div>
+
+                <div class="canchas-grid-admin" id="canchasAdminContainer">
+                    <div class="loader-container">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+</html>
