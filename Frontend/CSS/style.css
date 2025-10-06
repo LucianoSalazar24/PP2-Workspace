@@ -106,7 +106,7 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
-    background: linear-gradient(135deg, #1E8449 0%, #2ECC71 100%);
+    background: linear-gradient(135deg, #2ECC71 0%, #2ECC71 100%);
     overflow: hidden;
 }
 
