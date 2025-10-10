@@ -112,6 +112,21 @@ CREATE TABLE bloqueos_horarios (
     FOREIGN KEY (cancha_id) REFERENCES canchas(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- Crear tabla de usuarios
+CREATE TABLE usuarios (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    rol ENUM('cliente', 'admin') DEFAULT 'cliente',
+    cliente_id INT NULL,
+    estado ENUM('activo', 'inactivo') DEFAULT 'activo',
+    ultimo_acceso TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE SET NULL
+);
+
 -- Datos iniciales
 INSERT INTO tipos_cliente (nombre, descuento_porcentaje, min_reservas_mes, descripcion) VALUES
 ('regular', 0, 0, 'Cliente regular sin descuentos'),

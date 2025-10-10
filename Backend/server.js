@@ -21,11 +21,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../Frontend')));
 
 // Importar rutas - Ajustado a tu estructura de carpetas
+const authRoutes = require('./Routes/auth');
 const reservasRoutes = require('./Routes/reservas');
 const clientesRoutes = require('./Routes/clientes');
 const canchasRoutes = require('./Routes/canchas');
 
 // Usar rutas de la API
+app.use('/api/auth', authRoutes);
 app.use('/api/reservas', reservasRoutes);
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/canchas', canchasRoutes);
@@ -107,7 +109,7 @@ app.listen(PORT, async () => {
     
     // Inicializar base de datos
     try {
-        const db = require('./Config/dataBase');
+        const db = require('../Config/dataBase');
         await db.initialize();
         console.log('Base de datos conectada exitosamente');
     } catch (err) {
@@ -120,7 +122,7 @@ app.listen(PORT, async () => {
 process.on('SIGINT', async () => {
     console.log('\nCerrando servidor...');
     try {
-        const db = require('./Config/dataBase');
+        const db = require('../Config/dataBase');
         await db.close();
         console.log('Conexiones cerradas correctamente');
         process.exit(0);
