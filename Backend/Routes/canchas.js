@@ -19,7 +19,7 @@ const handleValidationErrors = (req, res, next) => {
 // GET /api/canchas - Obtener todas las canchas
 router.get('/', async (req, res) => {
     try {
-        const db = require('./Config/dataBase');
+        const db = require('../config/database');
         
         const canchas = await db.all(`
             SELECT 
@@ -56,7 +56,7 @@ router.get('/:id', [
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const db = require('./Config/dataBase');
+        const db = require('../config/database');
         
         const cancha = await db.get('SELECT * FROM canchas WHERE id = ?', [id]);
         
@@ -107,7 +107,7 @@ router.post('/', [
 ], async (req, res) => {
     try {
         const { nombre, capacidad, precio_por_hora, descripcion = '' } = req.body;
-        const db = require('./Config/dataBase');
+        const db = require('../config/database');
         
         // Verificar si ya existe una cancha con ese nombre
         const nombreExistente = await db.get('SELECT id FROM canchas WHERE nombre = ?', [nombre]);
@@ -157,7 +157,7 @@ router.put('/:id', [
     try {
         const { id } = req.params;
         const { nombre, capacidad, precio_por_hora, descripcion, estado } = req.body;
-        const db = require('./Config/dataBase');
+        const db = require('../config/database');
         
         const cancha = await db.get('SELECT * FROM canchas WHERE id = ?', [id]);
         
@@ -223,7 +223,7 @@ router.put('/:id/estado', [
     try {
         const { id } = req.params;
         const { estado } = req.body;
-        const db = require('./Config/dataBase');
+        const db = require('../config/database');
         
         const cancha = await db.get('SELECT * FROM canchas WHERE id = ?', [id]);
         
@@ -259,7 +259,7 @@ router.get('/:id/disponibilidad', [
     try {
         const { id } = req.params;
         const { fecha } = req.query;
-        const db = require('./Config/dataBase');
+        const db = require('../config/database');
         
         const cancha = await db.get('SELECT * FROM canchas WHERE id = ?', [id]);
         
@@ -306,7 +306,7 @@ router.delete('/:id', [
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const db = require('./Config/dataBase');
+        const db = require('../config/database');
         
         const cancha = await db.get('SELECT * FROM canchas WHERE id = ?', [id]);
         

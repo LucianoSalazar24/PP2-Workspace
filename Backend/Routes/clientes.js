@@ -108,7 +108,7 @@ router.get('/tipos/lista', async (req, res) => {
 // POST /api/clientes/actualizar-tipos - Actualizar automáticamente tipos de cliente
 router.post('/actualizar-tipos', async (req, res) => {
     try {
-        const db = require('./Config/dataBase');
+        const db = require('../config/database');
         
         // Obtener configuraciones
         const reservasFrec = await db.getConfiguracion('min_reservas_frecuente') || 4;

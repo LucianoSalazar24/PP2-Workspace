@@ -21,10 +21,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../Frontend')));
 
 // Importar rutas - Ajustado a tu estructura de carpetas
-const authRoutes = require('./Routes/auth');
-const reservasRoutes = require('./Routes/reservas');
-const clientesRoutes = require('./Routes/clientes');
-const canchasRoutes = require('./Routes/canchas');
+const authRoutes = require('../routes/auth');
+const reservasRoutes = require('../routes/reservas');
+const clientesRoutes = require('../routes/clientes');
+const canchasRoutes = require('../routes/canchas');
 
 // Usar rutas de la API
 app.use('/api/auth', authRoutes);
@@ -122,7 +122,7 @@ app.listen(PORT, async () => {
 process.on('SIGINT', async () => {
     console.log('\nCerrando servidor...');
     try {
-        const db = require('../Config/dataBase');
+        const db = require('./config/database');
         await db.close();
         console.log('Conexiones cerradas correctamente');
         process.exit(0);

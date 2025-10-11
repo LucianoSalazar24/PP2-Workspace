@@ -1,5 +1,5 @@
 // controllers/authController.js - Controlador de autenticación
-const db = require('./Config/database');
+const db = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 class AuthController {
