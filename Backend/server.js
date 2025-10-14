@@ -109,7 +109,7 @@ app.listen(PORT, async () => {
     
     // Inicializar base de datos
     try {
-        const db = require('../Config/dataBase');
+        const db = require('./config/database');
         await db.initialize();
         console.log('Base de datos conectada exitosamente');
     } catch (err) {

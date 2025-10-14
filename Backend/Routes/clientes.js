@@ -83,7 +83,7 @@ router.put('/:id/estado', [
 // GET /api/clientes/tipos - Obtener tipos de cliente disponibles
 router.get('/tipos/lista', async (req, res) => {
     try {
-        const db = require('./Config/dataBase');
+        const db = require('../config/database');
         
         const tipos = await db.all(`
             SELECT id, nombre, descuento_porcentaje, min_reservas_mes, descripcion
