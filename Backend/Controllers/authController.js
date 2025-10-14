@@ -47,14 +47,14 @@ class AuthController {
                 [usuario.id]
             );
             
-            // Preparar datos de sesión (sin contraseña)
+            // Preparar datos de sesión (sin contraseña) - Convertir BigInt a Number
             const sesion = {
-                id: usuario.id,
+                id: Number(usuario.id),
                 email: usuario.email,
                 nombre: usuario.nombre,
                 apellido: usuario.apellido,
                 rol: usuario.rol,
-                cliente_id: usuario.cliente_id,
+                cliente_id: usuario.cliente_id ? Number(usuario.cliente_id) : null,
                 telefono: usuario.telefono
             };
             
@@ -124,13 +124,13 @@ class AuthController {
             
             // Crear usuario y cliente en una transacción
             const resultado = await db.transaction(async (conn) => {
-                // Crear cliente
+                // Crear cliente SIN email (para evitar duplicados)
                 const clienteResult = await conn.query(`
-                    INSERT INTO clientes (nombre, apellido, telefono, email, tipo_cliente_id)
-                    VALUES (?, ?, ?, ?, 1)
-                `, [nombre, apellido, telefono, email]);
+                    INSERT INTO clientes (nombre, apellido, telefono, tipo_cliente_id)
+                    VALUES (?, ?, ?, 1)
+                `, [nombre, apellido, telefono]);
                 
-                const clienteId = clienteResult.insertId;
+                const clienteId = Number(clienteResult.insertId);
                 
                 // Crear usuario
                 const usuarioResult = await conn.query(`
@@ -139,7 +139,7 @@ class AuthController {
                 `, [email, passwordHash, nombre, apellido, clienteId]);
                 
                 return {
-                    usuarioId: usuarioResult.insertId,
+                    usuarioId: Number(usuarioResult.insertId),
                     clienteId: clienteId
                 };
             });
@@ -165,7 +165,7 @@ class AuthController {
             console.error('Error en registro:', error);
             res.status(500).json({
                 success: false,
-                message: 'Error interno del servidor'
+                message: 'Error interno del servidor' + error.message
             });
         }
     }
