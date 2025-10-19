@@ -1,7 +1,21 @@
 // js/auth.js - Sistema de autenticación
 
+// Funciones auxiliares para manejar sesión
+function guardarSesion(sesion) {
+    sessionStorage.setItem('sesion', JSON.stringify(sesion));
+}
+
+function obtenerSesion() {
+    const sesionStr = sessionStorage.getItem('sesion');
+    return sesionStr ? JSON.parse(sesionStr) : null;
+}
+
+function eliminarSesion() {
+    sessionStorage.removeItem('sesion');
+}
+
 // Almacenar sesión actual
-let sesionActual = StorageUtils.obtener('sesion') || null;
+let sesionActual = obtenerSesion();
 
 document.addEventListener('DOMContentLoaded', () => {
     inicializarAuth();

@@ -6,6 +6,24 @@ let disponibilidadActual = null;
 
 // Inicializar cuando carga la página
 document.addEventListener('DOMContentLoaded', () => {
+    // Verificar autenticación primero
+    if (!verificarAutenticacion()) {
+        return; // Sale si no está autenticado
+    }
+    
+    // Obtener datos del usuario logueado
+    const sesion = obtenerSesionActual();
+    if (sesion && sesion.cliente_id) {
+        // Pre-cargar datos del cliente
+        clienteActual = {
+            id: sesion.cliente_id,
+            nombre: sesion.nombre,
+            apellido: sesion.apellido,
+            telefono: sesion.telefono,
+            email: sesion.email
+        };
+    }
+    
     inicializarFormulario();
     cargarCanchas();
     configurarFechaMinima();
