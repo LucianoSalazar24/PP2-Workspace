@@ -33,37 +33,35 @@
                         <div id="paso1" class="form-section">
                             <h3 class="mb-3">Paso 1: Información del Cliente</h3>
                             
-                            <div class="form-group">
-                                <label class="form-label required" for="telefono">Teléfono</label>
-                                <input type="tel" id="telefono" class="form-input" 
-                                       placeholder="Ej: 1123456789" required>
-                                <small class="form-help">Ingresá tu teléfono para buscar tus datos o crear un nuevo cliente</small>
-                            </div>
-                            
-                            <button type="button" id="btnBuscarCliente" class="btn btn-secondary">
-                                Buscar Cliente
-                            </button>
-                            
-                            <div id="datosCliente" class="d-none mt-3">
+                                <div id="datosClienteAuto" class="alert alert-success mb-3" style="display: none; padding: 1rem; border-radius: 8px; background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724;">
+                                     <strong>✓Datos cargados automáticamente</strong>
+                                     <p class="mb-0">Estás reservando como: <span id="nombreCompleto" style="font-weight: bold;"></span></p>
+                                </div>
+
+                                <div class="form-group">
+                                     <label class="form-label required" for="telefono">Teléfono</label>
+                                     <input type="tel" id="telefono" class="form-input" 
+                                            placeholder="Ej: 1123456789" required>
+                                </div>
+                                
                                 <div class="form-group">
                                     <label class="form-label required" for="nombre">Nombre</label>
                                     <input type="text" id="nombre" class="form-input" required>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label class="form-label required" for="apellido">Apellido</label>
+                                    <label class="form-label" for="apellido">Apellido</label>
                                     <input type="text" id="apellido" class="form-input" required>
                                 </div>
-                                
+
                                 <div class="form-group">
-                                    <label class="form-label" for="email">Email (opcional)</label>
+                                    <label class="form-label" for="apellido">Email (opcional)</label>
                                     <input type="email" id="email" class="form-input">
                                 </div>
                                 
                                 <button type="button" id="btnSiguiente1" class="btn btn-primary">
                                     Siguiente
                                 </button>
-                            </div>
                         </div>
 
                         <!-- Paso 2: Selección de Cancha y Horario -->

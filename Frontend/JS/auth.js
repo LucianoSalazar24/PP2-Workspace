@@ -18,7 +18,10 @@ function eliminarSesion() {
 let sesionActual = obtenerSesion();
 
 document.addEventListener('DOMContentLoaded', () => {
-    inicializarAuth();
+    // Solo inicializar auth si estamos en la página de login
+    if (document.getElementById('formLogin')) {
+        inicializarAuth();
+    }
 });
 
 function inicializarAuth() {
@@ -26,8 +29,16 @@ function inicializarAuth() {
     configurarTabs();
     
     // Configurar formularios
-    document.getElementById('formLogin').addEventListener('submit', handleLogin);
-    document.getElementById('formRegistro').addEventListener('submit', handleRegistro);
+    const formLogin = document.getElementById('formLogin');
+    const formRegistro = document.getElementById('formRegistro');
+    
+    if (formLogin) {
+        formLogin.addEventListener('submit', handleLogin);
+    }
+    
+    if (formRegistro) {
+        formRegistro.addEventListener('submit', handleRegistro);
+    }
     
     // Verificar si ya hay sesión activa
     if (sesionActual) {
@@ -76,7 +87,6 @@ async function handleLogin(e) {
     mostrarCargando(true);
     
     try {
-        // Llamar al endpoint de login (lo crearemos en el backend)
         const response = await fetch(CONFIG.API_URL + '/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -86,15 +96,23 @@ async function handleLogin(e) {
         const data = await response.json();
         
         if (data.success) {
-            // Guardar sesión
             sesionActual = data.data;
-            StorageUtils.guardar('sesion', sesionActual);
+            guardarSesion(sesionActual);
+
+            console.log('Sesión guardada:', sessionStorage.getItem('sesion'));
             
             UIUtils.mostrarExito('¡Bienvenido!');
-            
+
             setTimeout(() => {
-                redirigirSegunRol();
-            }, 1000);
+                const verificacion = obtenerSesion();
+                console.log('Verificando sesión antes de redirigir:', verificacion);
+                if (verificacion) {
+                    redirigirSegunRol();
+                } else {
+                    alert('Error: La sesión no se guardó correctamente');
+                }
+            }, 1500);
+            
         } else {
             UIUtils.mostrarError(data.message || 'Credenciales incorrectas');
         }
@@ -160,7 +178,7 @@ async function handleRegistro(e) {
             
             // Auto-login después del registro
             sesionActual = data.data;
-            StorageUtils.guardar('sesion', sesionActual);
+            guardarSesion(sesionActual);
             
             setTimeout(() => {
                 redirigirSegunRol();
@@ -208,29 +226,41 @@ function mostrarCargando(mostrar) {
 
 // Función para cerrar sesión (usada en otras páginas)
 function cerrarSesion() {
-    StorageUtils.eliminar('sesion');
+    eliminarSesion();
     sesionActual = null;
     window.location.href = '../pages/login.html';
 }
 
 // Verificar si el usuario está autenticado (para proteger páginas)
 function verificarAutenticacion(rolRequerido = null) {
-    const sesion = StorageUtils.obtener('sesion');
+    const sesion = obtenerSesion();
+    
+    console.log('=== DEBUG AUTENTICACIÓN ===');
+    console.log('Sesión obtenida:', sesion);
+    console.log('Rol requerido:', rolRequerido);
     
     if (!sesion) {
+        console.log('NO HAY SESIÓN - Redirigiendo a login');
+        alert('No hay sesión activa');
         window.location.href = '../pages/login.html';
         return false;
     }
     
     if (rolRequerido && sesion.rol !== rolRequerido) {
+        console.log('ROL INCORRECTO - Sesión:', sesion.rol, 'Requerido:', rolRequerido);
         UIUtils.mostrarError('No tienes permisos para acceder a esta página');
         window.location.href = '../index.html';
         return false;
     }
     
+    console.log('AUTENTICACIÓN EXITOSA');
     return true;
 }
 
-// Exportar funciones globales
+// EXPORTAR FUNCIONES COMO GLOBALES
 window.cerrarSesion = cerrarSesion;
 window.verificarAutenticacion = verificarAutenticacion;
+window.obtenerSesion = obtenerSesion;
+window.obtenerSesionActual = obtenerSesion; // Alias para compatibilidad con reservas.js
+window.guardarSesion = guardarSesion;
+window.eliminarSesion = eliminarSesion;

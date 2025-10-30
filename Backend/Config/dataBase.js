@@ -140,18 +140,14 @@ class Database {
             WHERE r.cancha_id = ?
             AND r.fecha = ?
             AND r.estado_id IN (1, 2)
-            AND (
-                (r.hora_inicio < ? AND r.hora_fin > ?) OR
-                (r.hora_inicio < ? AND r.hora_fin > ?) OR
-                (r.hora_inicio >= ? AND r.hora_fin <= ?)
-            )
+            AND NOT (r.hora_fin <= ? OR r.hora_inicio >= ?)
         `;
         
         let params = [
-            cancha_id, fecha,
-            hora_fin, hora_inicio,    // reserva existente termina después de que inicie la nueva
-            hora_inicio, hora_fin,    // reserva existente inicia antes de que termine la nueva
-            hora_inicio, hora_fin     // nueva reserva contiene completamente a la existente
+            cancha_id,
+            fecha,
+            hora_inicio,    // La reserva existente termina ANTES o IGUAL a cuando inicia la nueva (OK)
+            hora_fin,     // la reserva existente inicia DESPUÉS o IGUAL a cuando termina la nueva (OK)
         ];
 
         // Si es una actualización, excluir la reserva actual
@@ -160,8 +156,24 @@ class Database {
             params.push(reserva_id);
         }
 
-        const result = await this.get(sql, params);
-        return result.conflictos === 0;
+        console.log('=== DEBUG DISPONIBILIDAD ===');
+        console.log('SQL:', sql);
+        console.log('Params:', params);
+
+        try {
+            const result = await this.get(sql, params);
+            console.log('Resultado:', result);
+            
+            // Convertir BigInt a número para la comparación
+            const numConflictos = Number(result.conflictos);
+            console.log('Conflictos (convertido):', numConflictos);
+            console.log('Disponible:', numConflictos === 0);
+            
+            return numConflictos === 0;
+        } catch (error) {
+            console.error('Error en verificarDisponibilidad:', error);
+            throw error;
+        }
     }
 
     // Obtener configuración del sistema
