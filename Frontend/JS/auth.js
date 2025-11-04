@@ -25,6 +25,21 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function inicializarAuth() {
+    // Verificar si viene del botón "Panel Admin"
+    const urlParams = new URLSearchParams(window.location.search);
+    const esAdmin = urlParams.get('admin') === 'true';
+    
+    if (esAdmin) {
+        // Mostrar mensaje indicando que debe loguearse como admin
+        const loginTab = document.getElementById('loginTab');
+        if (loginTab) {
+            const mensaje = document.createElement('div');
+            mensaje.style.cssText = 'background: #fff3cd; border: 1px solid #ffc107; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; color: #856404;';
+            mensaje.innerHTML = '<strong>⚠️ Acceso Administrativo</strong><br>Por favor, ingresa con tu cuenta de administrador.';
+            loginTab.insertBefore(mensaje, loginTab.firstChild);
+        }
+    }
+    
     // Configurar tabs
     configurarTabs();
     
@@ -40,8 +55,8 @@ function inicializarAuth() {
         formRegistro.addEventListener('submit', handleRegistro);
     }
     
-    // Verificar si ya hay sesión activa
-    if (sesionActual) {
+    // NO redirigir automáticamente si viene de "Panel Admin"
+    if (sesionActual && !esAdmin) {
         redirigirSegunRol();
     }
 }
@@ -96,6 +111,17 @@ async function handleLogin(e) {
         const data = await response.json();
         
         if (data.success) {
+            // Verificar si viene del botón "Panel Admin"
+            const urlParams = new URLSearchParams(window.location.search);
+            const esAdmin = urlParams.get('admin') === 'true';
+            
+            // Si viene de "Panel Admin" pero NO es admin, rechazar
+            if (esAdmin && data.data.rol !== 'admin') {
+                UIUtils.mostrarError('Esta cuenta no tiene permisos de administrador');
+                mostrarCargando(false);
+                return;
+            }
+            
             sesionActual = data.data;
             guardarSesion(sesionActual);
 
@@ -104,13 +130,7 @@ async function handleLogin(e) {
             UIUtils.mostrarExito('¡Bienvenido!');
 
             setTimeout(() => {
-                const verificacion = obtenerSesion();
-                console.log('Verificando sesión antes de redirigir:', verificacion);
-                if (verificacion) {
-                    redirigirSegunRol();
-                } else {
-                    alert('Error: La sesión no se guardó correctamente');
-                }
+                redirigirSegunRol();
             }, 1500);
             
         } else {
@@ -241,14 +261,13 @@ function verificarAutenticacion(rolRequerido = null) {
     
     if (!sesion) {
         console.log('NO HAY SESIÓN - Redirigiendo a login');
-        alert('No hay sesión activa');
         window.location.href = '../pages/login.html';
         return false;
     }
     
     if (rolRequerido && sesion.rol !== rolRequerido) {
         console.log('ROL INCORRECTO - Sesión:', sesion.rol, 'Requerido:', rolRequerido);
-        UIUtils.mostrarError('No tienes permisos para acceder a esta página');
+        alert('No tienes permisos para acceder a esta página');
         window.location.href = '../index.html';
         return false;
     }

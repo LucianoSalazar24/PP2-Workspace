@@ -16,9 +16,9 @@ class AuthController {
                 });
             }
             
-            // Buscar usuario
+            // Buscar usuario con todos los datos del cliente
             const usuario = await db.get(`
-                SELECT u.*, c.telefono
+                SELECT u.*, c.telefono, c.email as cliente_email
                 FROM usuarios u
                 LEFT JOIN clientes c ON u.cliente_id = c.id
                 WHERE u.email = ? AND u.estado = 'activo'
@@ -58,6 +58,8 @@ class AuthController {
                 telefono: usuario.telefono
             };
             
+            console.log('Login exitoso:', sesion);
+            
             res.json({
                 success: true,
                 message: 'Login exitoso',
@@ -77,6 +79,8 @@ class AuthController {
     async registro(req, res) {
         try {
             const { nombre, apellido, email, telefono, password } = req.body;
+            
+            console.log('Datos de registro recibidos:', { nombre, apellido, email, telefono });
             
             // Validaciones
             if (!nombre || !apellido || !email || !telefono || !password) {
@@ -124,19 +128,23 @@ class AuthController {
             
             // Crear usuario y cliente en una transacción
             const resultado = await db.transaction(async (conn) => {
-                // Crear cliente SIN email (para evitar duplicados)
+                // Crear cliente CON email
                 const clienteResult = await conn.query(`
-                    INSERT INTO clientes (nombre, apellido, telefono, tipo_cliente_id)
-                    VALUES (?, ?, ?, 1)
-                `, [nombre, apellido, telefono]);
+                    INSERT INTO clientes (nombre, apellido, telefono, email, tipo_cliente_id)
+                    VALUES (?, ?, ?, ?, 1)
+                `, [nombre, apellido, telefono, email]);
                 
                 const clienteId = Number(clienteResult.insertId);
+                
+                console.log('Cliente creado con ID:', clienteId);
                 
                 // Crear usuario
                 const usuarioResult = await conn.query(`
                     INSERT INTO usuarios (email, password, nombre, apellido, rol, cliente_id)
                     VALUES (?, ?, ?, ?, 'cliente', ?)
                 `, [email, passwordHash, nombre, apellido, clienteId]);
+                
+                console.log('Usuario creado con ID:', Number(usuarioResult.insertId));
                 
                 return {
                     usuarioId: Number(usuarioResult.insertId),
@@ -155,6 +163,8 @@ class AuthController {
                 telefono: telefono
             };
             
+            console.log('Registro exitoso, sesión creada:', sesion);
+            
             res.status(201).json({
                 success: true,
                 message: 'Usuario creado exitosamente',
@@ -165,7 +175,7 @@ class AuthController {
             console.error('Error en registro:', error);
             res.status(500).json({
                 success: false,
-                message: 'Error interno del servidor' + error.message
+                message: 'Error interno del servidor: ' + error.message
             });
         }
     }
@@ -183,7 +193,7 @@ class AuthController {
             }
             
             const usuario = await db.get(`
-                SELECT u.id, u.email, u.nombre, u.apellido, u.rol, u.cliente_id, c.telefono
+                SELECT u.id, u.email, u.nombre, u.apellido, u.rol, u.cliente_id, c.telefono, c.email as cliente_email
                 FROM usuarios u
                 LEFT JOIN clientes c ON u.cliente_id = c.id
                 WHERE u.id = ? AND u.estado = 'activo'

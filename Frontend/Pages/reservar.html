@@ -8,19 +8,70 @@
     <link rel="stylesheet" href="../css/components.css">
 </head>
 <body>
-    <header class="header">
-        <div class="container">
-            <div class="logo">
-                <span class="logo-icon">⚽</span>
-                <h1>FutbolReservas</h1>
-            </div>
-            <nav class="nav">
-                <a href="../index.html" class="nav-link">Inicio</a>
-                <a href="reservar.html" class="nav-link active">Reservar</a>
-                <a href="admin.html" class="nav-link">Panel Admin</a>
-            </nav>
+    <!-- Header para reservar.html - Reemplaza el header existente -->
+<header class="header">
+    <div class="container">
+        <div class="logo">
+            <span class="logo-icon">⚽</span>
+            <h1>FutbolReservas</h1>
         </div>
-    </header>
+        <nav class="nav" style="display: flex; align-items: center; gap: 1rem;">
+            <a href="../index.html" class="nav-link">Inicio</a>
+            <a href="reservar.html" class="nav-link active">Reservar</a>
+            <a href="#" onclick="irAAdminDesdeReserva(event)" class="nav-link">Panel Admin</a>
+            
+            <!-- Mostrar usuario actual -->
+            <span id="usuarioActual" style="color: white; font-size: 0.9rem; background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 6px;"></span>
+            
+            <!-- Botón de cerrar sesión -->
+            <button onclick="cerrarSesionDesdeReserva()" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: white;">
+                🚪 Cerrar Sesión
+            </button>
+        </nav>
+    </div>
+</header>
+
+<script>
+// Mostrar usuario actual
+document.addEventListener('DOMContentLoaded', () => {
+    const sesionStr = sessionStorage.getItem('sesion');
+    const usuarioActual = document.getElementById('usuarioActual');
+    
+    if (sesionStr && usuarioActual) {
+        const sesion = JSON.parse(sesionStr);
+        usuarioActual.textContent = `👤 ${sesion.nombre} ${sesion.apellido}`;
+    }
+});
+
+function irAAdminDesdeReserva(e) {
+    e.preventDefault();
+    
+    if (confirm('Para acceder al Panel Admin debes cerrar tu sesión actual. ¿Continuar?')) {
+        sessionStorage.removeItem('sesion');
+        window.location.href = 'login.html?admin=true';
+    }
+}
+
+function cerrarSesionDesdeReserva() {
+    if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+        sessionStorage.removeItem('sesion');
+        window.location.href = '../index.html';
+    }
+}
+</script>
+
+<style>
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+</style>
 
     <section style="padding: 3rem 0; background-color: var(--light-bg);">
         <div class="container">

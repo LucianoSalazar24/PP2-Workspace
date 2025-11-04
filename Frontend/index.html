@@ -8,20 +8,122 @@
     <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
-    <!-- Header/Navegación -->
-    <header class="header">
-        <div class="container">
-            <div class="logo">
-                <span class="logo-icon">⚽</span>
-                <h1>FutbolReservas</h1>
-            </div>
-            <nav class="nav">
-                <a href="index.html" class="nav-link active">Inicio</a>
-                <a href="pages/login.html" class="nav-link">Reservar</a>
-                <a href="pages/login.html" class="nav-link">Panel Admin</a>
-            </nav>
+<!-- Header para index.html -->
+<header class="header">
+    <div class="container">
+        <div class="logo">
+            <span class="logo-icon">⚽</span>
+            <h1>FutbolReservas</h1>
         </div>
-    </header>
+        <nav class="nav" style="display: flex; align-items: center; gap: 1rem;">
+            <a href="index.html" class="nav-link active">Inicio</a>
+            <a href="#" onclick="irAReservar(event)" class="nav-link">Reservar</a>
+            <a href="#" onclick="irAAdmin(event)" class="nav-link">Panel Admin</a>
+            
+            <!-- Botón de cerrar sesión (se muestra solo si hay sesión) -->
+            <button id="btnCerrarSesion" onclick="cerrarSesionGlobal()" class="btn btn-outline" style="display: none; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                🚪 Cerrar Sesión
+            </button>
+            
+            <!-- Mostrar usuario actual -->
+            <span id="usuarioActual" style="display: none; color: white; font-size: 0.9rem;"></span>
+        </nav>
+    </div>
+</header>
+
+<!-- Script para manejar navegación inteligente -->
+<script>
+// Verificar si hay sesión y mostrar botón
+document.addEventListener('DOMContentLoaded', () => {
+    const sesionStr = sessionStorage.getItem('sesion');
+    const btnCerrarSesion = document.getElementById('btnCerrarSesion');
+    const usuarioActual = document.getElementById('usuarioActual');
+    
+    if (sesionStr && btnCerrarSesion) {
+        const sesion = JSON.parse(sesionStr);
+        btnCerrarSesion.style.display = 'block';
+        
+        if (usuarioActual) {
+            usuarioActual.textContent = `👤 ${sesion.nombre}`;
+            usuarioActual.style.display = 'block';
+        }
+    }
+});
+
+function irAReservar(e) {
+    e.preventDefault();
+    const sesion = sessionStorage.getItem('sesion');
+    
+    if (sesion) {
+        // Si hay sesión, ir directo a reservar
+        window.location.href = 'pages/reservar.html';
+    } else {
+        // Si no hay sesión, ir al login
+        window.location.href = 'pages/login.html';
+    }
+}
+
+function irAAdmin(e) {
+    e.preventDefault();
+    
+    const sesionStr = sessionStorage.getItem('sesion');
+    
+    if (sesionStr) {
+        const sesion = JSON.parse(sesionStr);
+        
+        // Si ya es admin, ir directo al panel
+        if (sesion.rol === 'admin') {
+            window.location.href = 'pages/admin.html';
+            return;
+        }
+        
+        // Si es cliente, preguntar si quiere cerrar sesión para entrar como admin
+        if (confirm('Para acceder al Panel Admin debes cerrar tu sesión actual. ¿Continuar?')) {
+            sessionStorage.removeItem('sesion');
+            window.location.href = 'pages/login.html?admin=true';
+        }
+    } else {
+        // Si no hay sesión, ir al login
+        window.location.href = 'pages/login.html?admin=true';
+    }
+}
+
+function cerrarSesionGlobal() {
+    if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+        sessionStorage.removeItem('sesion');
+        window.location.href = 'index.html';
+    }
+}
+</script>
+
+<style>
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+#btnCerrarSesion {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.3s;
+}
+
+#btnCerrarSesion:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+#usuarioActual {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+</style>
 
     <!-- Hero Section -->
     <section class="hero">

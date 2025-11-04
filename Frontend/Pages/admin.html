@@ -19,6 +19,9 @@
                 <a href="../index.html" class="nav-link">Inicio</a>
                 <a href="reservar.html" class="nav-link">Reservar</a>
                 <a href="admin.html" class="nav-link active">Panel Admin</a>
+                <button onclick="cerrarSesion()" class="btn btn-outline" style="margin-left: 1rem;">
+                    Cerrar Sesión
+                </button>
             </nav>
         </div>
     </header>
@@ -170,6 +173,21 @@
     <script src="../js/config.js"></script>
     <script src="../js/api.js"></script>
     <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Verificar que sea admin antes de cargar la página
+        const sesion = sessionStorage.getItem('sesion');
+        if (!sesion) {
+            alert('Debes iniciar sesión');
+            window.location.href = 'login.html';
+        } else {
+            const sesionObj = JSON.parse(sesion);
+            if (sesionObj.rol !== 'admin') {
+                alert('No tienes permisos de administrador');
+                window.location.href = '../index.html';
+            }
+        }
+    </script>
     <script src="../js/admin.js"></script>
 </body>
 </html>
