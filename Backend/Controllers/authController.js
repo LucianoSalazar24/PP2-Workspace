@@ -1,10 +1,20 @@
-// controllers/authController.js - Controlador de autenticación
-const db = require('../config/database');
-const bcrypt = require('bcryptjs');
+// Backend/controllers/authController.js
+require('dotenv').config();
+const { createClient } = require('@supabase/supabase-js');
+const db = require('../config/database'); // Tu conexión MariaDB actual
+
+// Configurar Supabase
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_KEY
+);
+
+console.log('🔑 Supabase URL:', process.env.SUPABASE_URL);
+console.log('🔑 Service Key existe:', !!process.env.SUPABASE_SERVICE_KEY);
 
 class AuthController {
     
-    // Login de usuario
+    // Login con Supabase Auth
     async login(req, res) {
         try {
             const { email, password } = req.body;
@@ -16,49 +26,61 @@ class AuthController {
                 });
             }
             
-            // Buscar usuario con todos los datos del cliente
+            // 1. Autenticar con Supabase
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+            
+            if (authError) {
+                console.error('Error Supabase Auth:', authError);
+                return res.status(401).json({
+                    success: false,
+                    message: 'Credenciales incorrectas'
+                });
+            }
+            
+            console.log('✅ Autenticado en Supabase:', authData.user.email);
+            
+            // 2. Obtener datos del usuario desde TU base de datos (MariaDB)
             const usuario = await db.get(`
-                SELECT u.*, c.telefono, c.email as cliente_email
+                SELECT u.*, c.telefono
                 FROM usuarios u
                 LEFT JOIN clientes c ON u.cliente_id = c.id
-                WHERE u.email = ? AND u.estado = 'activo'
+                WHERE u.email = ?
             `, [email]);
             
+            console.log('📊 Usuario encontrado en BD:', usuario);
+            
+            // Si no existe en MariaDB, crear entrada básica
             if (!usuario) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Credenciales incorrectas'
-                });
+                console.warn('⚠️ Usuario no existe en MariaDB, creando entrada básica');
+                
+                // Insertar usuario básico
+                await db.run(`
+                    INSERT INTO usuarios (email, password, nombre, apellido, rol, supabase_user_id)
+                    VALUES (?, 'supabase_auth', ?, ?, 'cliente', ?)
+                `, [
+                    email, 
+                    authData.user.user_metadata?.nombre || 'Usuario',
+                    authData.user.user_metadata?.apellido || 'Nuevo',
+                    authData.user.id
+                ]);
             }
             
-            // Verificar contraseña
-            const passwordValido = await bcrypt.compare(password, usuario.password);
-            
-            if (!passwordValido) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Credenciales incorrectas'
-                });
-            }
-            
-            // Actualizar último acceso
-            await db.run(
-                'UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?',
-                [usuario.id]
-            );
-            
-            // Preparar datos de sesión (sin contraseña) - Convertir BigInt a Number
+            // 3. Preparar datos de sesión
             const sesion = {
-                id: Number(usuario.id),
-                email: usuario.email,
-                nombre: usuario.nombre,
-                apellido: usuario.apellido,
-                rol: usuario.rol,
-                cliente_id: usuario.cliente_id ? Number(usuario.cliente_id) : null,
-                telefono: usuario.telefono
+                id: authData.user.id,
+                email: authData.user.email,
+                nombre: usuario?.nombre || authData.user.user_metadata?.nombre || 'Usuario',
+                apellido: usuario?.apellido || authData.user.user_metadata?.apellido || 'Nuevo',
+                rol: usuario?.rol || 'cliente',
+                cliente_id: usuario?.cliente_id || null,
+                telefono: usuario?.telefono || null,
+                access_token: authData.session.access_token
             };
             
-            console.log('Login exitoso:', sesion);
+            console.log('✅ Login exitoso:', sesion);
             
             res.json({
                 success: true,
@@ -67,7 +89,7 @@ class AuthController {
             });
             
         } catch (error) {
-            console.error('Error en login:', error);
+            console.error('💥 Error en login:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor'
@@ -75,12 +97,12 @@ class AuthController {
         }
     }
     
-    // Registro de nuevo usuario
+    // Registro con Supabase Auth
     async registro(req, res) {
         try {
             const { nombre, apellido, email, telefono, password } = req.body;
             
-            console.log('Datos de registro recibidos:', { nombre, apellido, email, telefono });
+            console.log('📝 Intentando registrar:', { nombre, apellido, email, telefono });
             
             // Validaciones
             if (!nombre || !apellido || !email || !telefono || !password) {
@@ -97,19 +119,6 @@ class AuthController {
                 });
             }
             
-            // Verificar si el email ya existe
-            const emailExiste = await db.get(
-                'SELECT id FROM usuarios WHERE email = ?',
-                [email]
-            );
-            
-            if (emailExiste) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'El email ya está registrado'
-                });
-            }
-            
             // Verificar si el teléfono ya existe
             const telefonoExiste = await db.get(
                 'SELECT id FROM clientes WHERE telefono = ?',
@@ -123,12 +132,32 @@ class AuthController {
                 });
             }
             
-            // Hashear contraseña
-            const passwordHash = await bcrypt.hash(password, 10);
+            // 1. Crear usuario en Supabase Auth
+            const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+                email,
+                password,
+                email_confirm: true,
+                user_metadata: { 
+                    nombre, 
+                    apellido 
+                }
+            });
             
-            // Crear usuario y cliente en una transacción
+            if (authError) {
+                console.error('❌ Error Supabase Auth:', authError);
+                return res.status(400).json({
+                    success: false,
+                    message: authError.message === 'User already registered' 
+                        ? 'El email ya está registrado' 
+                        : authError.message
+                });
+            }
+            
+            console.log('✅ Usuario creado en Supabase:', authData.user.id);
+            
+            // 2. Crear cliente y usuario en MariaDB
             const resultado = await db.transaction(async (conn) => {
-                // Crear cliente CON email
+                // Crear cliente
                 const clienteResult = await conn.query(`
                     INSERT INTO clientes (nombre, apellido, telefono, email, tipo_cliente_id)
                     VALUES (?, ?, ?, ?, 1)
@@ -136,15 +165,11 @@ class AuthController {
                 
                 const clienteId = Number(clienteResult.insertId);
                 
-                console.log('Cliente creado con ID:', clienteId);
-                
-                // Crear usuario
+                // Crear usuario vinculado
                 const usuarioResult = await conn.query(`
-                    INSERT INTO usuarios (email, password, nombre, apellido, rol, cliente_id)
-                    VALUES (?, ?, ?, ?, 'cliente', ?)
-                `, [email, passwordHash, nombre, apellido, clienteId]);
-                
-                console.log('Usuario creado con ID:', Number(usuarioResult.insertId));
+                    INSERT INTO usuarios (email, password, nombre, apellido, rol, cliente_id, supabase_user_id)
+                    VALUES (?, 'supabase_auth', ?, ?, 'cliente', ?, ?)
+                `, [email, nombre, apellido, clienteId, authData.user.id]);
                 
                 return {
                     usuarioId: Number(usuarioResult.insertId),
@@ -152,9 +177,11 @@ class AuthController {
                 };
             });
             
-            // Preparar datos de sesión
+            console.log('✅ Datos guardados en MariaDB:', resultado);
+            
+            // 3. Preparar sesión
             const sesion = {
-                id: resultado.usuarioId,
+                id: authData.user.id,
                 email: email,
                 nombre: nombre,
                 apellido: apellido,
@@ -163,8 +190,6 @@ class AuthController {
                 telefono: telefono
             };
             
-            console.log('Registro exitoso, sesión creada:', sesion);
-            
             res.status(201).json({
                 success: true,
                 message: 'Usuario creado exitosamente',
@@ -172,7 +197,7 @@ class AuthController {
             });
             
         } catch (error) {
-            console.error('Error en registro:', error);
+            console.error('💥 Error en registro:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor: ' + error.message
@@ -183,36 +208,70 @@ class AuthController {
     // Verificar sesión
     async verificarSesion(req, res) {
         try {
-            const { userId } = req.body;
+            const { access_token } = req.body;
             
-            if (!userId) {
+            if (!access_token) {
                 return res.status(400).json({
                     success: false,
-                    message: 'ID de usuario requerido'
+                    message: 'Token requerido'
                 });
             }
             
-            const usuario = await db.get(`
-                SELECT u.id, u.email, u.nombre, u.apellido, u.rol, u.cliente_id, c.telefono, c.email as cliente_email
-                FROM usuarios u
-                LEFT JOIN clientes c ON u.cliente_id = c.id
-                WHERE u.id = ? AND u.estado = 'activo'
-            `, [userId]);
+            // Verificar token con Supabase
+            const { data: { user }, error } = await supabase.auth.getUser(access_token);
             
-            if (!usuario) {
+            if (error || !user) {
                 return res.status(401).json({
                     success: false,
                     message: 'Sesión inválida'
                 });
             }
             
+            // Obtener datos de MariaDB
+            const usuario = await db.get(`
+                SELECT u.*, c.telefono
+                FROM usuarios u
+                LEFT JOIN clientes c ON u.cliente_id = c.id
+                WHERE u.email = ?
+            `, [user.email]);
+            
             res.json({
                 success: true,
-                data: usuario
+                data: {
+                    id: user.id,
+                    email: user.email,
+                    nombre: usuario?.nombre,
+                    apellido: usuario?.apellido,
+                    rol: usuario?.rol || 'cliente',
+                    cliente_id: usuario?.cliente_id
+                }
             });
             
         } catch (error) {
             console.error('Error verificando sesión:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error interno del servidor'
+            });
+        }
+    }
+    
+    // Cerrar sesión
+    async logout(req, res) {
+        try {
+            const { access_token } = req.body;
+            
+            if (access_token) {
+                await supabase.auth.admin.signOut(access_token);
+            }
+            
+            res.json({
+                success: true,
+                message: 'Sesión cerrada'
+            });
+            
+        } catch (error) {
+            console.error('Error cerrando sesión:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor'
