@@ -10,7 +10,7 @@ CREATE TABLE canchas (
     capacidad INT NOT NULL DEFAULT 22,
     precio_por_hora DECIMAL(10,2) NOT NULL,
     descripcion TEXT,
-    estado ENUM('disponible', 'mantenimiento', 'fuera_servicio') DEFAULT 'disponible',
+    estado ENUM('disponible', 'reservada', 'mantenimiento', 'fuera_servicio') DEFAULT 'disponible',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

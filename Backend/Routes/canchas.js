@@ -150,7 +150,7 @@ router.put('/:id', [
     body('precio_por_hora').optional().isFloat({ min: 0 }).withMessage('Precio por hora debe ser positivo'),
     body('descripcion').optional().isString().isLength({ max: 500 })
         .withMessage('Descripción no puede exceder 500 caracteres'),
-    body('estado').optional().isIn(['disponible', 'mantenimiento', 'fuera_servicio'])
+    body('estado').optional().isIn(['disponible', 'reservada', 'mantenimiento', 'fuera_servicio'])
         .withMessage('Estado inválido'),
     handleValidationErrors
 ], async (req, res) => {
@@ -216,8 +216,8 @@ router.put('/:id', [
 // PUT /api/canchas/:id/estado - Cambiar estado de la cancha
 router.put('/:id/estado', [
     param('id').isInt({ min: 1 }).withMessage('ID debe ser un número positivo'),
-    body('estado').isIn(['disponible', 'mantenimiento', 'fuera_servicio'])
-        .withMessage('Estado debe ser: disponible, mantenimiento o fuera_servicio'),
+    body('estado').isIn(['disponible', 'reservada', 'mantenimiento', 'fuera_servicio'])
+        .withMessage('Estado debe ser: disponible, reservada, mantenimiento o fuera_servicio'),
     handleValidationErrors
 ], async (req, res) => {
     try {

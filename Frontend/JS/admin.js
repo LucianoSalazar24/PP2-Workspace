@@ -483,7 +483,7 @@ async function cargarCanchas() {
 function obtenerInfoEstado(estado) {
     const estados = {
         'disponible': { texto: '✅ Disponible', clase: 'disponible' },
-        'mantenimiento': { texto: '🔧 En Mantenimiento', clase: 'mantenimiento' },
+        'reservada': { texto: '⌛ Reservada', clase: 'reservada' },
         'fuera_servicio': { texto: '⛔ Fuera de Servicio', clase: 'fuera_servicio' }
     };
     return estados[estado] || { texto: estado, clase: '' };
@@ -518,7 +518,7 @@ async function cambiarEstadoCancha(id) {
                     <label class="form-label">Selecciona el nuevo estado:</label>
                     <select id="selectEstadoCancha" class="form-select" style="font-size: 1.1rem;">
                         <option value="disponible">✅ Disponible</option>
-                        <option value="mantenimiento">🔧 En Mantenimiento</option>
+                        <option value="reservada">⌛ Reservada</option>
                         <option value="fuera_servicio">⛔ Fuera de Servicio</option>
                     </select>
                 </div>

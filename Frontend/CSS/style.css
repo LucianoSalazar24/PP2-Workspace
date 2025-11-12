@@ -258,7 +258,7 @@ section {
     background-color: var(--success-color);
 }
 
-.cancha-badge.mantenimiento {
+.cancha-badge.reservada {
     background-color: var(--warning-color);
 }
 
