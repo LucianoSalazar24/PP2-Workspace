@@ -131,5 +131,5 @@ process.on('SIGINT', async () => {
         process.exit(1);
     }
 });
-
+console.log ('Servidor inicializado correctamente');      
 module.exports = app;
