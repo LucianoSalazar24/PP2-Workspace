@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const clienteController = require('../Controllers/clienteController');
 const { body, param, query, validationResult } = require('express-validator');
+const db = require('../config');
 
 // Middleware para validar errores
 const handleValidationErrors = (req, res, next) => {
@@ -83,8 +84,6 @@ router.put('/:id/estado', [
 // GET /api/clientes/tipos - Obtener tipos de cliente disponibles
 router.get('/tipos/lista', async (req, res) => {
     try {
-        const db = require('../config/database');
-        
         const tipos = await db.all(`
             SELECT id, nombre, descuento_porcentaje, min_reservas_mes, descripcion
             FROM tipos_cliente
@@ -108,8 +107,6 @@ router.get('/tipos/lista', async (req, res) => {
 // POST /api/clientes/actualizar-tipos - Actualizar automáticamente tipos de cliente
 router.post('/actualizar-tipos', async (req, res) => {
     try {
-        const db = require('../config/database');
-        
         // Obtener configuraciones
         const reservasFrec = await db.getConfiguracion('min_reservas_frecuente') || 4;
         const reservasVip = await db.getConfiguracion('min_reservas_vip') || 8;

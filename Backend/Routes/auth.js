@@ -1,7 +1,7 @@
 // routes/auth.js - Rutas de autenticación
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/authController');
+const authController = require('../controllers/authControllerCustom');
 const { body, validationResult } = require('express-validator');
 
 // Middleware para validar errores

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Días Bloqueados - Sistema de Reservas</title>
+    <link rel="stylesheet" href="../CSS/style.css">
+    <link rel="stylesheet" href="../CSS/diasBloqueados.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>Gestión de Días Bloqueados</h1>
+                <p class="subtitle">Administra feriados y días de mantenimiento del complejo</p>
+                <span class="user-role" id="userRoleLabel" style="display: none;"></span>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="window.history.back()">
+                    ← Volver
+                </button>
+                <button class="btn btn-primary" id="btnAbrirModal" style="display: none;">
+                    + Agregar Día Bloqueado
+                </button>
+            </div>
+        </header>
+
+        <!-- Filtros -->
+        <section class="filters">
+            <div class="filter-group">
+                <label for="filtroEstado">
+                    <span class="filter-icon">📅</span>
+                    Estado
+                </label>
+                <select id="filtroEstado" class="filter-select">
+                    <option value="todos">Todos</option>
+                    <option value="futuros" selected>Solo futuros</option>
+                    <option value="pasados">Solo pasados</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="filtroFechaDesde">
+                    <span class="filter-icon">📆</span>
+                    Desde
+                </label>
+                <input type="date" id="filtroFechaDesde" class="filter-input">
+            </div>
+
+            <div class="filter-group">
+                <label for="filtroFechaHasta">
+                    <span class="filter-icon">📆</span>
+                    Hasta
+                </label>
+                <input type="date" id="filtroFechaHasta" class="filter-input">
+            </div>
+
+            <button class="btn btn-filter" id="btnAplicarFiltros">
+                Aplicar Filtros
+            </button>
+
+            <button class="btn btn-clear" id="btnLimpiarFiltros">
+                Limpiar
+            </button>
+        </section>
+
+        <!-- Estadísticas -->
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-content">
+                    <p class="stat-label">Total Registrados</p>
+                    <p class="stat-value" id="statTotal">0</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-content">
+                    <p class="stat-label">Próximos</p>
+                    <p class="stat-value" id="statProximos">0</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📅</div>
+                <div class="stat-content">
+                    <p class="stat-label">Este Mes</p>
+                    <p class="stat-value" id="statEsteMes">0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lista de Días Bloqueados -->
+        <section class="dias-bloqueados-section">
+            <div class="section-header">
+                <h2>Lista de Días Bloqueados</h2>
+                <span class="badge" id="badgeTotal">0 registros</span>
+            </div>
+
+            <!-- Loading -->
+            <div id="loadingContainer" class="loading-container" style="display: none;">
+                <div class="spinner"></div>
+                <p>Cargando días bloqueados...</p>
+            </div>
+
+            <!-- Tabla -->
+            <div id="tablaContainer" class="tabla-container">
+                <table class="tabla-dias-bloqueados">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Día</th>
+                            <th>Cancha Afectada</th>
+                            <th>Motivo</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th id="columnAcciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaDiasBloqueados">
+                        <!-- Los datos se cargan dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mensaje cuando no hay datos -->
+            <div id="mensajeVacio" class="mensaje-vacio" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <h3>No hay días bloqueados registrados</h3>
+                <p>Comienza agregando un nuevo día bloqueado usando el botón de arriba</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal para Agregar/Editar Día Bloqueado -->
+    <div id="modalDiaBloqueado" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitulo">Agregar Día Bloqueado</h2>
+                <button class="modal-close" id="btnCerrarModal">&times;</button>
+            </div>
+
+            <form id="formDiaBloqueado" class="modal-form">
+                <input type="hidden" id="diaBloqueadoId">
+
+                <div class="form-group">
+                    <label for="fecha" class="required">Fecha</label>
+                    <input
+                        type="date"
+                        id="fecha"
+                        name="fecha"
+                        class="form-input"
+                        required
+                    >
+                    <small class="form-help">Selecciona la fecha que deseas bloquear</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="motivo" class="required">Motivo</label>
+                    <select id="motivo" name="motivo" class="form-input" required>
+                        <option value="">Seleccione un motivo</option>
+                        <option value="Feriado Nacional">Feriado Nacional</option>
+                        <option value="Feriado Provincial">Feriado Provincial</option>
+                        <option value="Mantenimiento">Mantenimiento</option>
+                        <option value="Evento Especial">Evento Especial</option>
+                        <option value="Cierre Extraordinario">Cierre Extraordinario</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="grupoMotivoPersonalizado" style="display: none;">
+                    <label for="motivoPersonalizado">Motivo Personalizado</label>
+                    <input
+                        type="text"
+                        id="motivoPersonalizado"
+                        name="motivoPersonalizado"
+                        class="form-input"
+                        placeholder="Ingrese el motivo"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="cancha_id">Cancha Afectada</label>
+                    <select id="cancha_id" name="cancha_id" class="form-input">
+                        <option value="">Todas las canchas</option>
+                        <!-- Las opciones se cargan dinámicamente -->
+                    </select>
+                    <small class="form-help">Deja en blanco para bloquear todas las canchas, o selecciona una específica</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcion">Descripción (Opcional)</label>
+                    <textarea
+                        id="descripcion"
+                        name="descripcion"
+                        class="form-textarea"
+                        rows="3"
+                        placeholder="Añade detalles adicionales sobre el cierre..."
+                    ></textarea>
+                    <small class="form-help">Ejemplo: Día de la Independencia, Mantenimiento de canchas, etc.</small>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btnCancelar">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardar">
+                        Guardar Día Bloqueado
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación de Eliminación -->
+    <div id="modalConfirmacion" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Confirmar Eliminación</h2>
+            </div>
+            <div class="modal-body">
+                <div class="confirmation-icon">⚠️</div>
+                <p>¿Estás seguro de que deseas eliminar este día bloqueado?</p>
+                <p class="confirmation-details" id="detallesEliminacion"></p>
+                <p class="warning-text">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btnCancelarEliminacion">
+                    Cancelar
+                </button>
+                <button class="btn btn-danger" id="btnConfirmarEliminacion">
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast/Notificación -->
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../JS/config.js"></script>
+    <script src="../JS/utils.js"></script>
+    <script src="../JS/diasBloqueados.js"></script>
+</body>
+</html>

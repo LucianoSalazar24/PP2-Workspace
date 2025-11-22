@@ -1,5 +1,5 @@
 // controllers/canchaController.js - Lógica para manejo de canchas
-const db = require('../config/database');
+const db = require('../config');
 
 class CanchaController {
     
