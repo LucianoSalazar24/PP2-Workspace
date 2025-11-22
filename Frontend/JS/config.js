@@ -68,6 +68,9 @@ CONFIG.getURL = function(endpoint, params = {}) {
     return url;
 };
 
+// Exportar API_URL como variable global para compatibilidad
+const API_URL = CONFIG.API_URL;
+
 // Exportar para uso en otros archivos
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = CONFIG;

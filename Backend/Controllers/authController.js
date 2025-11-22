@@ -1,7 +1,7 @@
 // Backend/controllers/authController.js
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
-const db = require('../config/database'); // Tu conexión MariaDB actual
+const db = require('../config'); // Conexión unificada (MariaDB o Supabase)
 
 // Configurar Supabase
 const supabase = createClient(

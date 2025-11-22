@@ -1,5 +1,5 @@
 // src/controllers/clienteController.js - Lógica para manejo de clientes
-const db = require('../config/database');
+const db = require('../config');
 
 class ClienteController {
     

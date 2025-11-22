@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const reservaController = require('../controllers/reservaController');
 const { body, param, query, validationResult } = require('express-validator');
+const db = require('../config');
 
 // Middleware para validar errores
 const handleValidationErrors = (req, res, next) => {
@@ -42,8 +43,6 @@ router.get('/:id', [
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const db = require('../config/database');
-        
         const reserva = await db.get(`
             SELECT 
                 r.*,
@@ -130,8 +129,6 @@ router.put('/:id/completar', [
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const db = require('../config/database');
-        
         const reserva = await db.get('SELECT * FROM reservas WHERE id = ?', [id]);
         
         if (!reserva) {
@@ -171,8 +168,6 @@ router.put('/:id/no-show', [
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const db = require('../config/database');
-        
         const reserva = await db.get('SELECT * FROM reservas WHERE id = ?', [id]);
         
         if (!reserva) {
@@ -216,8 +211,6 @@ router.delete('/:id', [
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const db = require('../config/database');
-        
         const reserva = await db.get('SELECT * FROM reservas WHERE id = ?', [id]);
         
         if (!reserva) {

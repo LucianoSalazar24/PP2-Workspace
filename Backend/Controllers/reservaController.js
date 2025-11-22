@@ -1,5 +1,5 @@
 // src/controllers/reservaController.js - Lógica principal de reservas
-const db = require('../config/database');
+const db = require('../config');
 const moment = require('moment');
 
 class ReservaController {
@@ -121,7 +121,7 @@ class ReservaController {
             // Validar que la reserva sea para el futuro
             const ahora = moment();
             const fechaHoraReserva = moment(`${fecha} ${hora_inicio}`, 'YYYY-MM-DD HH:mm');
-            
+
             const horasAnticipacion = await db.getConfiguracion('horas_anticipacion_min') || 2;
             const minimoPermitido = ahora.clone().add(horasAnticipacion, 'hours');
 
@@ -129,6 +129,24 @@ class ReservaController {
                 return res.status(400).json({
                     success: false,
                     message: `Debes reservar con al menos ${horasAnticipacion} horas de anticipación`
+                });
+            }
+
+            // Verificar si la cancha está bloqueada en esa fecha
+            const diaBloqueado = await db.get(`
+                SELECT motivo, descripcion,
+                       CASE WHEN cancha_id IS NULL THEN 'Todas las canchas' ELSE 'Esta cancha' END as alcance
+                FROM dias_bloqueados
+                WHERE fecha = ? AND (cancha_id = ? OR cancha_id IS NULL)
+            `, [fecha, cancha_id]);
+
+            if (diaBloqueado) {
+                return res.status(403).json({
+                    success: false,
+                    message: `No se puede reservar en esta fecha. ${diaBloqueado.motivo}`,
+                    motivo: diaBloqueado.motivo,
+                    descripcion: diaBloqueado.descripcion,
+                    alcance: diaBloqueado.alcance
                 });
             }
 
