@@ -2,44 +2,65 @@
 
 // Formateo de fechas
 const DateUtils = {
-    // Convertir fecha a formato YYYY-MM-DD
+    // Convertir fecha a formato YYYY-MM-DD (siempre local)
     formatoSQL(fecha) {
         if (typeof fecha === 'string') {
+            // Si ya tiene el formato correcto, devolverlo
+            if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return fecha;
             fecha = new Date(fecha);
         }
+        
         const year = fecha.getFullYear();
         const month = String(fecha.getMonth() + 1).padStart(2, '0');
         const day = String(fecha.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     },
     
-    // Convertir fecha a formato legible (DD/MM/YYYY)
+    // Convertir fecha a formato legible (DD/MM/YYYY) sin desfase horario
     formatoLegible(fecha) {
-        if (typeof fecha === 'string') {
-            fecha = new Date(fecha);
+        if (!fecha) return '-';
+        
+        let d, m, y;
+        
+        if (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+            // Parseo manual para evitar desfase de zona horaria (UTC vs Local)
+            [y, m, d] = fecha.split('-');
+        } else {
+            const dateObj = (typeof fecha === 'string') ? new Date(fecha) : fecha;
+            d = String(dateObj.getDate()).padStart(2, '0');
+            m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            y = dateObj.getFullYear();
         }
-        const day = String(fecha.getDate()).padStart(2, '0');
-        const month = String(fecha.getMonth() + 1).padStart(2, '0');
-        const year = fecha.getFullYear();
-        return `${day}/${month}/${year}`;
+        
+        return `${d}/${m}/${y}`;
     },
     
-    // Obtener fecha de hoy en formato SQL
+    // Obtener fecha de hoy en formato SQL (Local)
     hoy() {
         return this.formatoSQL(new Date());
     },
     
-    // Verificar si una fecha es hoy
-    esHoy(fecha) {
-        return this.formatoSQL(fecha) === this.hoy();
+    // Obtener hora actual en formato HH:MM
+    horaAhora() {
+        const ahora = new Date();
+        return String(ahora.getHours()).padStart(2, '0') + ':' + 
+               String(ahora.getMinutes()).padStart(2, '0');
     },
     
-    // Verificar si una fecha es futura
+    // Verificar si una fecha es hoy
+    esHoy(fecha) {
+        const fechaStr = (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) 
+            ? fecha 
+            : this.formatoSQL(fecha);
+        return fechaStr === this.hoy();
+    },
+    
+    // Verificar si una fecha es futura (incluye hoy)
     esFutura(fecha) {
-        const fechaObj = new Date(fecha);
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        return fechaObj >= hoy;
+        const fechaSQL = (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha))
+            ? fecha
+            : this.formatoSQL(fecha);
+        return fechaSQL >= this.hoy();
     }
 };
 

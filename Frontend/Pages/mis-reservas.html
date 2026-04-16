@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Reservas - FutbolReservas</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">⚽</span>
+                <h1>FutbolReservas</h1>
+            </div>
+            <nav class="nav" style="display: flex; align-items: center; gap: 1rem;">
+                <a href="../index.html" class="nav-link">Inicio</a>
+                <a href="reservar.html" class="nav-link">Reservar</a>
+                <a href="mis-reservas.html" class="nav-link active">Mis Reservas</a>
+                
+                <span id="usuarioActual" style="color: white; font-size: 0.9rem; background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 6px;"></span>
+                
+                <button onclick="cerrarSesionGlobal()" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: white;">
+                    🚪 Cerrar Sesión
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <section style="padding: 3rem 0; min-height: 80vh; background-color: var(--light-bg);">
+        <div class="container">
+            <div class="flex-between mb-4">
+                <h2 class="section-title" style="margin-bottom: 0; text-align: left;">Mi Historial de Reservas</h2>
+                <a href="reservar.html" class="btn btn-primary">Nueva Reserva</a>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div id="reservasClienteContainer">
+                        <div class="loader-container">
+                            <div class="spinner"></div>
+                            <p class="mt-2">Cargando tus reservas...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 FutbolReservas - Sistema de Reservas de Canchas</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Lógica de navegación específica para esta página
+        function cerrarSesionGlobal() {
+            if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+                sessionStorage.removeItem('sesion');
+                window.location.href = '../index.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sesionStr = sessionStorage.getItem('sesion');
+            const usuarioActual = document.getElementById('usuarioActual');
+            
+            if (sesionStr && usuarioActual) {
+                const sesion = JSON.parse(sesionStr);
+                usuarioActual.textContent = `👤 ${sesion.nombre} ${sesion.apellido}`;
+            }
+        });
+    </script>
+    <script src="../js/mis-reservas.js"></script>
+</body>
+</html>

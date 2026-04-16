@@ -225,18 +225,26 @@ function mostrarDisponibilidad(datos) {
     
     container.innerHTML = '';
     
+    // Obtener fecha y hora actual para filtrar
+    const fechaSeleccionada = document.getElementById('fecha').value;
+    const esHoy = DateUtils.esHoy(fechaSeleccionada);
+    const horaAhora = DateUtils.horaAhora();
+    
     todosHorarios.forEach(hora => {
         const estaOcupado = horariosOcupados.some(reserva => {
             return hora >= reserva.hora_inicio && hora < reserva.hora_fin;
         });
         
+        // Un horario está vencido si es hoy y la hora ya pasó
+        const estaVencido = esHoy && hora <= horaAhora;
+        
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = `btn ${estaOcupado ? 'btn-danger' : 'btn-outline'}`;
+        btn.className = `btn ${estaOcupado || estaVencido ? 'btn-danger' : 'btn-outline'}`;
         btn.textContent = hora;
-        btn.disabled = estaOcupado;
+        btn.disabled = estaOcupado || estaVencido;
         
-        if (!estaOcupado) {
+        if (!estaOcupado && !estaVencido) {
             btn.addEventListener('click', () => seleccionarHorario(hora));
         }
         
@@ -442,11 +450,8 @@ async function crearReserva(e) {
         const response = await ReservasAPI.crear(datosReserva);
         
         if (response.success) {
-            UIUtils.mostrarExito('Reserva creada exitosamente');
-            
-            setTimeout(() => {
-                window.location.href = '../index.html';
-            }, 2000);
+            alert('¡Reserva creada exitosamente!\n\nPuedes ver los detalles en la sección "Mis Reservas".');
+            window.location.href = 'mis-reservas.html';
         } else {
             throw new Error(response.message);
         }
