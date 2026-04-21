@@ -18,6 +18,7 @@
         <nav class="nav" style="display: flex; align-items: center; gap: 1rem;">
             <a href="index.html" class="nav-link active">Inicio</a>
             <a href="#" onclick="irAReservar(event)" class="nav-link">Reservar</a>
+            <a href="Pages/mis-reservas.html" id="linkMisReservas" class="nav-link" style="display: none;">Mis Reservas</a>
             <a href="#" onclick="irAAdmin(event)" class="nav-link">Panel Admin</a>
             
             <!-- Botón de cerrar sesión (se muestra solo si hay sesión) -->
@@ -38,10 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const sesionStr = sessionStorage.getItem('sesion');
     const btnCerrarSesion = document.getElementById('btnCerrarSesion');
     const usuarioActual = document.getElementById('usuarioActual');
+    const linkMisReservas = document.getElementById('linkMisReservas');
     
-    if (sesionStr && btnCerrarSesion) {
+    if (sesionStr) {
         const sesion = JSON.parse(sesionStr);
-        btnCerrarSesion.style.display = 'block';
+        if (btnCerrarSesion) btnCerrarSesion.style.display = 'block';
+        if (linkMisReservas) linkMisReservas.style.display = 'block';
         
         if (usuarioActual) {
             usuarioActual.textContent = `👤 ${sesion.nombre}`;

@@ -90,9 +90,14 @@ async function cargarDashboard() {
         const ingresosMes = todasReservas.data
             .filter(r => {
                 if (!r.fecha || !r.estado) return false;
-                const fechaReserva = new Date(r.fecha);
-                return fechaReserva.getMonth() === mesActual && 
-                       fechaReserva.getFullYear() === anioActual &&
+                
+                // Parseo seguro evitando desfase de zona horaria
+                const [y, m, d] = r.fecha.split('-').map(Number);
+                const mesReserva = m - 1; // getMonth() es 0-11
+                const anioReserva = y;
+                
+                return mesReserva === mesActual && 
+                       anioReserva === anioActual &&
                        r.estado === 'completada';
             })
             .reduce((sum, r) => {
