@@ -7,7 +7,7 @@ class ReservaController {
     // Obtener todas las reservas con filtros
     async obtenerReservas(req, res) {
         try {
-            const { fecha, cancha_id, cliente_id, estado, limite = 50 } = req.query;
+            const { fecha, cancha_id, cliente_id, estado, buscar, limite = 50 } = req.query;
 
             let query = supabase
                 .from('reservas')
@@ -26,27 +26,58 @@ class ReservaController {
             if (cancha_id) query = query.eq('cancha_id', cancha_id);
             if (cliente_id) query = query.eq('cliente_id', cliente_id);
             if (estado) query = query.eq('estado', estado);
+            
+            if (buscar) {
+                // Búsqueda por nombre, apellido o teléfono del cliente
+                query = query.or(`nombre.ilike.%${buscar}%,apellido.ilike.%${buscar}%,telefono.ilike.%${buscar}%`, { foreignTable: 'clientes' });
+            }
 
             const { data: reservas, error } = await query;
             if (error) throw error;
 
+            // Obtener pagos para estas reservas en una sola consulta
+            const idsReservas = (reservas || []).map(r => r.id);
+            let todosLosPagos = [];
+            
+            if (idsReservas.length > 0) {
+                const { data: pagosData } = await supabase
+                    .from('pagos')
+                    .select('reserva_id, tipo_pago, metodo_pago, fecha_pago')
+                    .in('reserva_id', idsReservas);
+                todosLosPagos = pagosData || [];
+            }
+
             // Aplanar para compatibilidad con frontend
-            const formateadas = (reservas || []).map(r => ({
-                ...r,
-                cancha_nombre: r.canchas?.nombre,
-                precio_por_hora: r.canchas?.precio_por_hora,
-                cliente_nombre: r.clientes?.nombre,
-                cliente_apellido: r.clientes?.apellido,
-                cliente_telefono: r.clientes?.telefono,
-                canchas: undefined,
-                clientes: undefined
-            }));
+            const formateadas = (reservas || []).map(r => {
+                // Obtener el último pago para esta reserva específica
+                const pagosDeReserva = todosLosPagos.filter(p => p.reserva_id === r.id);
+                const ultimoPago = pagosDeReserva.length > 0 
+                    ? pagosDeReserva.sort((a, b) => new Date(b.fecha_pago) - new Date(a.fecha_pago))[0] 
+                    : null;
+
+                return {
+                    ...r,
+                    cancha_nombre: r.canchas?.nombre,
+                    precio_por_hora: r.canchas?.precio_por_hora,
+                    cliente_nombre: r.clientes?.nombre,
+                    cliente_apellido: r.clientes?.apellido,
+                    cliente_telefono: r.clientes?.telefono,
+                    tipo_pago: ultimoPago ? ultimoPago.tipo_pago : (r.estado === 'pendiente' ? 'pendiente' : '-'),
+                    metodo_pago: ultimoPago ? ultimoPago.metodo_pago : '-',
+                    canchas: undefined,
+                    clientes: undefined
+                };
+            });
 
             res.json({ success: true, data: formateadas, total: formateadas.length });
 
         } catch (error) {
-            console.error('Error obteniendo reservas:', error);
-            res.status(500).json({ success: false, message: 'Error interno del servidor' });
+            console.error('❌ Error obteniendo reservas:', error.message || error);
+            res.status(500).json({ 
+                success: false, 
+                message: 'Error al obtener las reservas',
+                error: error.message 
+            });
         }
     }
 
@@ -233,8 +264,8 @@ class ReservaController {
                 return res.status(404).json({ success: false, message: 'Reserva no encontrada' });
             }
 
-            if (reserva.estado !== 'pendiente') {
-                return res.status(400).json({ success: false, message: 'La reserva ya está confirmada o no se puede confirmar' });
+            if (!['pendiente', 'confirmada'].includes(reserva.estado)) {
+                return res.status(400).json({ success: false, message: 'No se pueden registrar pagos en este estado' });
             }
 
             const montoPagado = parseFloat(monto_pagado);
@@ -245,13 +276,20 @@ class ReservaController {
                 });
             }
 
+            // Calcular nuevo estado y acumulados
+            const nuevoTotalPagado = parseFloat(reserva.sena_pagada) + montoPagado;
+            const esPagoCompleto = nuevoTotalPagado >= parseFloat(reserva.precio_total);
+            
+            // Si ya se pagó el total, pasa a estado completada automáticamente
+            const nuevoEstado = esPagoCompleto ? 'completada' : 'confirmada';
+
             // Actualizar reserva
             const { error: updateError } = await supabase
                 .from('reservas')
                 .update({
-                    estado: 'confirmada',
-                    sena_pagada: montoPagado,
-                    pago_completo: montoPagado >= parseFloat(reserva.precio_total)
+                    estado: nuevoEstado,
+                    sena_pagada: nuevoTotalPagado,
+                    pago_completo: esPagoCompleto
                 })
                 .eq('id', id);
 
@@ -263,7 +301,7 @@ class ReservaController {
                 .insert({
                     reserva_id: id,
                     monto: montoPagado,
-                    tipo_pago: montoPagado >= parseFloat(reserva.precio_total) ? 'completo' : 'seña',
+                    tipo_pago: esPagoCompleto ? 'completo' : 'seña',
                     metodo_pago
                 });
 
@@ -302,13 +340,18 @@ class ReservaController {
                 .update({
                     estado: 'cancelada',
                     fecha_cancelacion: new Date().toISOString(),
-                    razon_cancelacion: razon
+                    razon_cancelacion: razon,
+                    observaciones: `${reserva.observaciones || ''}\n[NOTIFICACION_CANCELACION]: ${razon}`.trim()
                 })
                 .eq('id', id);
 
             if (error) throw error;
 
-            res.json({ success: true, message: 'Reserva cancelada exitosamente' });
+            res.json({ 
+                success: true, 
+                message: 'Reserva cancelada exitosamente. Se ha registrado la notificación para el cliente.',
+                notificacion: razon
+            });
 
         } catch (error) {
             console.error('Error cancelando reserva:', error);
@@ -385,7 +428,39 @@ class ReservaController {
         }
     }
 
-    // Eliminar reserva
+    // Ocultar reserva del dashboard (soft-delete visual)
+    async ocultarReserva(req, res) {
+        try {
+            const { id } = req.params;
+
+            const { data: reserva } = await supabase
+                .from('reservas')
+                .select('observaciones')
+                .eq('id', id)
+                .single();
+
+            if (!reserva) {
+                return res.status(404).json({ success: false, message: 'Reserva no encontrada' });
+            }
+
+            const nuevasObs = `${reserva.observaciones || ''}\n[OCULTO_DASHBOARD]`.trim();
+
+            const { error } = await supabase
+                .from('reservas')
+                .update({ observaciones: nuevasObs })
+                .eq('id', id);
+
+            if (error) throw error;
+
+            res.json({ success: true, message: 'Reserva ocultada del dashboard' });
+
+        } catch (error) {
+            console.error('Error ocultando reserva:', error);
+            res.status(500).json({ success: false, message: 'Error interno del servidor' });
+        }
+    }
+
+    // Eliminar reserva de la base de datos
     async eliminarReserva(req, res) {
         try {
             const { id } = req.params;
@@ -400,14 +475,13 @@ class ReservaController {
                 return res.status(404).json({ success: false, message: 'Reserva no encontrada' });
             }
 
-            // Eliminar pagos y reserva (CASCADE debería manejar esto,
-            // pero lo hacemos explícito por seguridad)
+            // Eliminar pagos y reserva
             await supabase.from('pagos').delete().eq('reserva_id', id);
             const { error } = await supabase.from('reservas').delete().eq('id', id);
 
             if (error) throw error;
 
-            res.json({ success: true, message: 'Reserva eliminada exitosamente' });
+            res.json({ success: true, message: 'Reserva eliminada definitivamente de la base de datos' });
 
         } catch (error) {
             console.error('Error eliminando reserva:', error);
@@ -463,6 +537,100 @@ class ReservaController {
 
         } catch (error) {
             console.error('Error obteniendo disponibilidad:', error);
+            res.status(500).json({ success: false, message: 'Error interno del servidor' });
+        }
+    }
+
+    // ============================================================
+    // REGLAS DE NEGOCIO - SEÑA EN EFECTIVO (48hs)
+    // ============================================================
+
+    // Procesar vencimientos de reservas (cancelar si faltan < 48hs y sigue pendiente)
+    async procesarVencimientos(req, res) {
+        try {
+            console.log('🔄 Ejecutando procesamiento de vencimientos de reservas (48hs)...');
+            
+            // Límite: 48 horas a partir de ahora
+            const limiteVencimiento = moment().add(48, 'hours');
+            
+            // Buscar reservas pendientes donde la fecha/hora es ANTERIOR al límite 
+            // (es decir, faltan menos de 48 horas para el turno)
+            // Tenemos que combinar fecha y hora_inicio para comparar bien
+            
+            const { data: pendientes } = await supabase
+                .from('reservas')
+                .select('id, fecha, hora_inicio')
+                .eq('estado', 'pendiente');
+                
+            if (!pendientes || pendientes.length === 0) {
+                if (res) return res.json({ success: true, message: 'No hay reservas pendientes para procesar' });
+                return;
+            }
+            
+            let canceladas = 0;
+            
+            for (const reserva of pendientes) {
+                const fechaHoraReserva = moment(`${reserva.fecha} ${reserva.hora_inicio}`, 'YYYY-MM-DD HH:mm');
+                
+                // Si la fecha/hora de la reserva es ANTES del límite de 48h desde ahora, se vence
+                if (fechaHoraReserva.isBefore(limiteVencimiento)) {
+                    console.log(`⚠️ Cancelando reserva ${reserva.id}: Pasó el límite de 48hs sin pago de seña.`);
+                    await supabase
+                        .from('reservas')
+                        .update({
+                            estado: 'cancelada',
+                            fecha_cancelacion: new Date().toISOString(),
+                            razon_cancelacion: 'Cancelación automática: Falta de pago de seña en el plazo de 48hs previas.'
+                        })
+                        .eq('id', reserva.id);
+                        
+                    canceladas++;
+                }
+            }
+            
+            console.log(`✅ Proceso finalizado. Reservas canceladas: ${canceladas}`);
+            if (res) res.json({ success: true, message: `Proceso completado. Canceladas: ${canceladas}` });
+            
+        } catch (error) {
+            console.error('Error procesando vencimientos:', error);
+            if (res) res.status(500).json({ success: false, message: 'Error procesando vencimientos' });
+        }
+    }
+
+    // Obtener alertas para el dashboard (reservas que vencen en menos de 1 hora, o sea entre 48h y 49h)
+    async obtenerAlertasAdmin(req, res) {
+        try {
+            const limite48h = moment().add(48, 'hours');
+            const limite49h = moment().add(49, 'hours');
+            
+            const { data: pendientes } = await supabase
+                .from('reservas')
+                .select(`
+                    id, fecha, hora_inicio, precio_total, sena_requerida,
+                    clientes(nombre, apellido, telefono)
+                `)
+                .eq('estado', 'pendiente');
+                
+            if (!pendientes) return res.json({ success: true, data: [] });
+            
+            const alertas = pendientes.filter(reserva => {
+                const fechaHora = moment(`${reserva.fecha} ${reserva.hora_inicio}`, 'YYYY-MM-DD HH:mm');
+                // Está entre 48h y 49h de distancia
+                return fechaHora.isAfter(limite48h) && fechaHora.isBefore(limite49h);
+            }).map(r => ({
+                id: r.id,
+                fecha: r.fecha,
+                hora_inicio: r.hora_inicio,
+                monto_sena: r.sena_requerida,
+                cliente: `${r.clientes?.nombre} ${r.clientes?.apellido}`,
+                telefono: r.clientes?.telefono,
+                horas_restantes: moment(`${r.fecha} ${r.hora_inicio}`, 'YYYY-MM-DD HH:mm').diff(moment(), 'hours', true).toFixed(1)
+            }));
+            
+            res.json({ success: true, data: alertas });
+            
+        } catch (error) {
+            console.error('Error obteniendo alertas:', error);
             res.status(500).json({ success: false, message: 'Error interno del servidor' });
         }
     }

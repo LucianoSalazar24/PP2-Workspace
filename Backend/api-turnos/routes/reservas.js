@@ -26,6 +26,12 @@ router.get('/', [
     handleValidationErrors
 ], reservaController.obtenerReservas);
 
+// GET /api/reservas/alertas
+router.get('/alertas', reservaController.obtenerAlertasAdmin);
+
+// POST /api/reservas/procesar-vencimientos
+router.post('/procesar-vencimientos', reservaController.procesarVencimientos);
+
 // GET /api/reservas/disponibilidad
 router.get('/disponibilidad', [
     query('fecha').notEmpty().isISO8601(),
@@ -76,6 +82,12 @@ router.put('/:id/no-show', [
     param('id').isInt({ min: 1 }),
     handleValidationErrors
 ], reservaController.marcarNoShow);
+
+// PUT /api/reservas/:id/ocultar
+router.put('/:id/ocultar', [
+    param('id').isInt({ min: 1 }),
+    handleValidationErrors
+], reservaController.ocultarReserva);
 
 // DELETE /api/reservas/:id
 router.delete('/:id', [
