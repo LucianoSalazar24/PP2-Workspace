@@ -141,6 +141,12 @@ const ReservasAPI = {
         return await request(url);
     },
     
+    // Obtener alertas de vencimientos
+    async obtenerAlertas() {
+        const url = CONFIG.getURL(`${CONFIG.ENDPOINTS.RESERVAS}/alertas`);
+        return await request(url);
+    },
+    
     // Verificar disponibilidad de canchas
     async verificarDisponibilidad(fecha, canchaId = null) {
         const params = { fecha };
@@ -196,6 +202,14 @@ const ReservasAPI = {
         });
     },
     
+    // Ocultar del dashboard
+    async ocultar(id) {
+        const url = CONFIG.getURL(`${CONFIG.ENDPOINTS.RESERVAS}/${id}/ocultar`);
+        return await request(url, {
+            method: 'PUT'
+        });
+    },
+    
     // Eliminar reserva
     async eliminar(id) {
         const url = CONFIG.getURL(`${CONFIG.ENDPOINTS.RESERVAS}/${id}`);
@@ -205,7 +219,25 @@ const ReservasAPI = {
     }
 };
 
+// API de Pagos
+const PagosAPI = {
+    // Registrar un nuevo pago
+    async registrar(datos) {
+        const url = CONFIG.getURL(CONFIG.ENDPOINTS.PAGOS);
+        return await request(url, {
+            method: 'POST',
+            body: JSON.stringify(datos)
+        });
+    },
+
+    // Obtener pagos de una reserva
+    async obtenerPorReserva(reservaId) {
+        const url = CONFIG.getURL(`${CONFIG.ENDPOINTS.PAGOS}/reserva/${reservaId}`);
+        return await request(url);
+    }
+};
+
 // Exportar APIs
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { CanchasAPI, ClientesAPI, ReservasAPI };
+    module.exports = { CanchasAPI, ClientesAPI, ReservasAPI, PagosAPI };
 }

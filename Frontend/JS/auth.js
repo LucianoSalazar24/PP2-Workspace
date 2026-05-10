@@ -245,10 +245,19 @@ function mostrarCargando(mostrar) {
 }
 
 // Función para cerrar sesión (usada en otras páginas)
-function cerrarSesion() {
-    eliminarSesion();
-    sesionActual = null;
-    window.location.href = '../pages/login.html';
+async function cerrarSesion() {
+    const confirmado = await UIUtils.confirmar('¿Estás seguro de que quieres cerrar sesión?');
+    if (confirmado) {
+        const esAdmin = sesionActual && sesionActual.rol === 'admin';
+        eliminarSesion();
+        sesionActual = null;
+        
+        if (esAdmin) {
+            window.location.href = '../index.html';
+        } else {
+            window.location.href = '../pages/login.html';
+        }
+    }
 }
 
 // Verificar si el usuario está autenticado (para proteger páginas)

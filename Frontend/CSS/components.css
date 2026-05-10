@@ -54,6 +54,17 @@
     background-color: #C0392B;
 }
 
+.btn-danger-outline {
+    background-color: transparent;
+    border: 2px solid #e74c3c;
+    color: #e74c3c;
+}
+
+.btn-danger-outline:hover {
+    background-color: #e74c3c;
+    color: var(--white);
+}
+
 .btn-large {
     padding: 1rem 2.5rem;
     font-size: 1.2rem;

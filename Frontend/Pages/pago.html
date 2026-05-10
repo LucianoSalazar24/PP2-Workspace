@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagar Reserva - FutbolReservas</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .pago-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .pago-header {
+            background: linear-gradient(135deg, #1a7a4a 0%, #2ecc71 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .pago-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .pago-header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.9;
+        }
+
+        .pago-body {
+            padding: 2rem;
+        }
+
+        /* Resumen */
+        .resumen-monto {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .resumen-col {
+            flex: 1;
+            padding: 1.5rem;
+            text-align: center;
+            border-right: 1px solid #e2e8f0;
+        }
+        .resumen-col:last-child {
+            border-right: none;
+        }
+
+        .resumen-col.highlight {
+            background: #f0fdf4;
+        }
+
+        .resumen-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .resumen-valor {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .resumen-col.highlight .resumen-valor {
+            color: #16a34a;
+        }
+
+        /* Opciones */
+        .opciones-group {
+            margin-bottom: 2rem;
+        }
+
+        .opciones-label {
+            display: block;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .grid-opciones {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .opcion-radio {
+            display: none;
+        }
+
+        .opcion-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.25rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            height: 100%;
+        }
+
+        .opcion-card:hover {
+            border-color: #94a3b8;
+            background: #f8fafc;
+        }
+
+        .opcion-icon {
+            font-size: 2rem;
+        }
+
+        .opcion-title {
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .opcion-desc {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* Seleccionado */
+        .opcion-radio:checked + .opcion-card {
+            border-color: #2ecc71;
+            background: #f0fdf4;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.15);
+        }
+
+        .forma-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        @media (max-width: 500px) {
+            .forma-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Advertencia */
+        .advertencia-box {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 8px;
+            color: #92400e;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Monto input */
+        .monto-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .monto-wrapper:focus-within {
+            border-color: #2ecc71;
+            box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+        }
+
+        .monto-prefix {
+            padding: 1rem 1.2rem;
+            background: #f8fafc;
+            border-right: 2px solid #e2e8f0;
+            font-weight: 700;
+            color: #475569;
+            font-size: 1.2rem;
+        }
+
+        .monto-input {
+            flex: 1;
+            border: none;
+            padding: 1rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0f172a;
+            outline: none;
+        }
+
+        .monto-info {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .btn-confirmar {
+            width: 100%;
+            padding: 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #1a7a4a, #2ecc71);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-confirmar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.5);
+        }
+
+        .btn-confirmar:disabled {
+            background: #cbd5e1;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">⚽</span>
+                <h1>FutbolReservas</h1>
+            </div>
+            <nav class="nav">
+                <a href="../index.html" class="nav-link">Inicio</a>
+                <a href="mis-reservas.html" class="nav-link">Mis Reservas</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+        <div class="pago-container">
+            <div class="pago-header">
+                <h2>💳 Finalizar Pago</h2>
+                <p>Seleccioná cómo querés abonar tu reserva</p>
+            </div>
+
+            <div class="pago-body">
+                <form id="formPago">
+                    <!-- Resumen -->
+                    <div class="resumen-monto">
+                        <div class="resumen-col">
+                            <span class="resumen-label">Total de Reserva</span>
+                            <span class="resumen-valor" id="lblPrecioTotal">$0</span>
+                        </div>
+                        <div class="resumen-col highlight">
+                            <span class="resumen-label">Seña Mínima (30%)</span>
+                            <span class="resumen-valor" id="lblSenaMinima">$0</span>
+                        </div>
+                    </div>
+
+                    <!-- Tipo de Pago -->
+                    <div class="opciones-group">
+                        <span class="opciones-label">¿Qué deseas abonar?</span>
+                        <div class="grid-opciones">
+                            <label>
+                                <input type="radio" name="tipoPago" value="seña" class="opcion-radio" checked>
+                                <div class="opcion-card">
+                                    <span class="opcion-icon">🤝</span>
+                                    <span class="opcion-title">Seña</span>
+                                    <span class="opcion-desc">Pago parcial (mín. 30%)</span>
+                                </div>
+                            </label>
+                            <label>
+                                <input type="radio" name="tipoPago" value="completo" class="opcion-radio">
+                                <div class="opcion-card">
+                                    <span class="opcion-icon">✅</span>
+                                    <span class="opcion-title">Completo</span>
+                                    <span class="opcion-desc">Pago total de la reserva</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Forma de Pago -->
+                    <div class="opciones-group">
+                        <span class="opciones-label">Método de Pago</span>
+                        <div class="grid-opciones forma-grid">
+                            <label>
+                                <input type="radio" name="formaPago" value="efectivo" class="opcion-radio">
+                                <div class="opcion-card">
+                                    <span class="opcion-icon">💵</span>
+                                    <span class="opcion-title">Efectivo</span>
+                                </div>
+                            </label>
+                            <label>
+                                <input type="radio" name="formaPago" value="transferencia" class="opcion-radio">
+                                <div class="opcion-card">
+                                    <span class="opcion-icon">🏦</span>
+                                    <span class="opcion-title">Transferencia</span>
+                                </div>
+                            </label>
+                            <label>
+                                <input type="radio" name="formaPago" value="tarjeta" class="opcion-radio">
+                                <div class="opcion-card">
+                                    <span class="opcion-icon">💳</span>
+                                    <span class="opcion-title">Tarjeta</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Advertencia Efectivo -->
+                    <div id="advertenciaEfectivo" class="advertencia-box">
+                        <strong>⚠️ Importante:</strong> Deberás acercarte personalmente a abonar la seña con una antelación máxima de 48 hs de la fecha de la reserva. De lo contrario, la reserva será cancelada automáticamente.
+                    </div>
+
+                    <!-- Monto a abonar -->
+                    <div class="opciones-group">
+                        <span class="opciones-label">Monto a Abonar</span>
+                        <div class="monto-wrapper">
+                            <span class="monto-prefix">$</span>
+                            <input type="number" id="inputMonto" class="monto-input" step="1" min="0">
+                        </div>
+                        <span id="infoMonto" class="monto-info"></span>
+                    </div>
+
+                    <button type="submit" id="btnConfirmarPago" class="btn-confirmar">
+                        Confirmar Pago y Reserva 🔒
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 FutbolReservas - Sistema de Reservas de Canchas</p>
+        </div>
+    </footer>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Verificar autenticación
+        if (!verificarAutenticacion()) {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <script src="../js/pago.js"></script>
+</body>
+</html>

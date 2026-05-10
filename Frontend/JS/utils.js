@@ -113,51 +113,58 @@ const Validacion = {
     }
 };
 
-// Manejo de UI
+// Manejo de UI (SweetAlert2)
 const UIUtils = {
     // Mostrar mensaje de éxito
     mostrarExito(mensaje, duracion = 3000) {
-        this.mostrarAlerta(mensaje, 'success', duracion);
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: '¡Éxito!',
+                text: mensaje,
+                icon: 'success',
+                timer: duracion,
+                timerProgressBar: true,
+                showConfirmButton: false
+            });
+        } else {
+            alert(mensaje); // Fallback si falla CDN
+        }
     },
     
     // Mostrar mensaje de error
     mostrarError(mensaje, duracion = 5000) {
-        this.mostrarAlerta(mensaje, 'error', duracion);
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Error',
+                text: mensaje,
+                icon: 'error',
+                timer: duracion,
+                timerProgressBar: true,
+                showConfirmButton: true,
+                confirmButtonColor: '#3085d6'
+            });
+        } else {
+            alert('Error: ' + mensaje); // Fallback
+        }
     },
     
-    // Mostrar alerta genérica
+    // Mostrar alerta genérica (mantenemos para retrocompatibilidad)
     mostrarAlerta(mensaje, tipo, duracion) {
-        const alerta = document.createElement('div');
-        alerta.className = `alerta alerta-${tipo}`;
-        alerta.textContent = mensaje;
-        alerta.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 5px;
-            z-index: 9999;
-            animation: slideIn 0.3s ease-out;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        `;
-        
-        if (tipo === 'success') {
-            alerta.style.backgroundColor = '#4CAF50';
-            alerta.style.color = 'white';
-        } else if (tipo === 'error') {
-            alerta.style.backgroundColor = '#f44336';
-            alerta.style.color = 'white';
+        if (typeof Swal !== 'undefined') {
+            let icon = 'info';
+            if (tipo === 'success') icon = 'success';
+            if (tipo === 'error') icon = 'error';
+            
+            Swal.fire({
+                text: mensaje,
+                icon: icon,
+                timer: duracion,
+                timerProgressBar: true,
+                showConfirmButton: false
+            });
         } else {
-            alerta.style.backgroundColor = '#2196F3';
-            alerta.style.color = 'white';
+            alert(mensaje);
         }
-        
-        document.body.appendChild(alerta);
-        
-        setTimeout(() => {
-            alerta.style.animation = 'slideOut 0.3s ease-out';
-            setTimeout(() => alerta.remove(), 300);
-        }, duracion);
     },
     
     // Mostrar loader
@@ -173,7 +180,23 @@ const UIUtils = {
     
     // Confirmar acción
     async confirmar(mensaje) {
-        return confirm(mensaje);
+        console.log('UIUtils: Solicitando confirmación para:', mensaje);
+        if (typeof Swal !== 'undefined') {
+            const result = await Swal.fire({
+                title: '¿Estás seguro?',
+                text: mensaje,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            });
+            return result.isConfirmed;
+        } else {
+            console.warn('UIUtils: SweetAlert2 no está disponible, usando confirm() nativo');
+            return confirm(mensaje);
+        }
     }
 };
 

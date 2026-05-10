@@ -6,6 +6,8 @@
     <title>Mis Reservas - FutbolReservas</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/components.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <header class="header">
@@ -18,10 +20,11 @@
                 <a href="../index.html" class="nav-link">Inicio</a>
                 <a href="reservar.html" class="nav-link">Reservar</a>
                 <a href="mis-reservas.html" class="nav-link active">Mis Reservas</a>
+                <a href="#" id="linkAdmin" onclick="irAAdmin(event)" class="nav-link" style="display: none;">Panel Admin</a>
                 
                 <span id="usuarioActual" style="color: white; font-size: 0.9rem; background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 6px;"></span>
                 
-                <button onclick="cerrarSesionGlobal()" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: white;">
+                <button onclick="cerrarSesion()" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: white;">
                     🚪 Cerrar Sesión
                 </button>
             </nav>
@@ -60,13 +63,7 @@
     <script src="../js/utils.js"></script>
     <script src="../js/auth.js"></script>
     <script>
-        // Lógica de navegación específica para esta página
-        function cerrarSesionGlobal() {
-            if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
-                sessionStorage.removeItem('sesion');
-                window.location.href = '../index.html';
-            }
-        }
+
 
         document.addEventListener('DOMContentLoaded', () => {
             const sesionStr = sessionStorage.getItem('sesion');

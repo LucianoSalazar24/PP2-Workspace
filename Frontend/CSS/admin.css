@@ -1,4 +1,4 @@
-/* css/admin.css - Estilos específicos del panel de administración */
+﻿/* css/admin.css - Estilos especÃ­ficos del panel de administraciÃ³n */
 
 .admin-container {
     display: flex;
@@ -14,7 +14,7 @@
 
 .admin-nav {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.5rem;
 }
 
@@ -67,7 +67,7 @@
     color: var(--text-dark);
 }
 
-/* Cards de estadísticas */
+/* Cards de estadÃ­sticas */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -116,14 +116,65 @@
 /* Filtros */
 .filters-row {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
     flex-wrap: wrap;
+    align-items: flex-end;
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid #e2e8f0;
 }
 
-.filters-row .form-input,
-.filters-row .form-select {
+.filter-group {
+    display: flex;
+    flex-direction: row;
+    gap: 0.6rem;
     flex: 1;
-    min-width: 200px;
+    min-width: 220px;
+}
+
+.filter-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.filter-group .form-input,
+.filter-group .form-select {
+    width: 100%;
+    height: 42px;
+    padding: 0 1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.filter-group .form-input:focus,
+.filter-group .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+    outline: none;
+}
+
+#btnFiltrarReservas {
+    height: 42px;
+    padding: 0 2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, var(--secondary-color), #f59e0b);
+    border: none;
+    color: var(--white);
+    transition: all 0.3s ease;
+}
+
+#btnFiltrarReservas:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 /* Grid de canchas en admin */
@@ -133,10 +184,60 @@
     gap: 1.5rem;
 }
 
+/* PestaÃ±as internas */
+.internal-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 8px 8px 0 0;
+    position: relative;
+}
+
+.tab-btn:hover {
+    color: var(--primary-color);
+    background-color: rgba(34, 197, 94, 0.05);
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary-color);
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .admin-container {
-        flex-direction: column;
+        flex-direction: row;
     }
     
     .admin-sidebar {
@@ -165,7 +266,7 @@
     }
     
     .filters-row {
-        flex-direction: column;
+        flex-direction: row;
     }
     
     .filters-row .form-input,
@@ -173,3 +274,283 @@
         width: 100%;
     }
 }
+/* Badges de Saldo Premium */
+.saldo-badge {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem 0.8rem;
+    border-radius: 10px;
+    font-weight: bold;
+    min-width: 110px;
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+.saldo-badge:hover {
+    transform: translateY(-2px);
+}
+
+.saldo-badge.pendiente {
+    background: linear-gradient(135deg, #f43f5e, #be123c);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(190, 18, 60, 0.2);
+}
+
+.saldo-badge.pagado {
+    background: linear-gradient(135deg, #10b981, #047857);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(4, 120, 87, 0.2);
+}
+
+.saldo-badge .icon {
+    font-size: 0.9rem;
+    line-height: 1;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.saldo-badge .amount {
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    display: block;
+}
+
+/* Alineación de acciones y saldos */
+.table td {
+    vertical-align: middle;
+}
+
+.table-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Forzar altura uniforme para botones de acción para coincidir con el Saldo Badge */
+.table-actions .btn {
+    height: 32px; /* Altura aproximada del saldo-badge */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+.table-actions .btn-danger {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    border: none;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.table-actions .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border: none;
+    box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2);
+}
+
+/* El botón de basura también debe coincidir */
+.table-actions button[title*="Eliminar"] {
+    width: 32px;
+    padding: 0;
+    font-size: 1.3rem;
+}
+
+/* Ajustar el saldo-badge para asegurar los 60px */
+.saldo-badge {
+    height: 32px;
+    box-sizing: border-box;
+}
+
+/* Efectos 3D para botones de acción */
+.table-actions .btn {
+    border-bottom: 3px solid rgba(0,0,0,0.2);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.1s ease;
+    cursor: pointer;
+    position: relative;
+    top: 0;
+}
+
+.table-actions .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
+    filter: brightness(1.1);
+}
+
+.table-actions .btn:active {
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* El saldo badge debe verse plano para no parecer un botón */
+.saldo-badge {
+    box-shadow: none !important;
+    transform: none !important;
+    cursor: default;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Sidebar Vertical y Stacking */
+.admin-sidebar {
+    width: 250px;
+    background-color: var(--text-dark);
+    color: var(--white);
+    padding: 2rem 0;
+}
+
+.admin-nav {
+    display: flex;
+    flex-direction: column; /* Cambiar a columna */
+    gap: 0.5rem;
+}
+
+.admin-nav-btn {
+    display: flex;
+    flex-direction: column; /* Icono arriba, texto abajo */
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+    width: 100%;
+    gap: 0.5rem;
+}
+
+.admin-nav-btn .icon {
+    font-size: 1.5rem;
+}
+
+.admin-nav-btn.active {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-left-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Fix Filtros y Botón Buscar */
+.filters-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.filters-row .btn-primary {
+    background: linear-gradient(135deg, #475569, #1e293b); /* Gris pizarra elegante */
+    color: white;
+    height: 45px; /* Altura cómoda para el buscador */
+    padding: 0 2rem;
+    border-radius: 8px;
+    border-bottom: 3px solid rgba(0,0,0,0.3);
+}
+
+.filters-row .btn-primary:hover {
+    filter: brightness(1.2);
+    transform: translateY(-1px);
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+
+/* Mejorar contraste Sidebar */
+.admin-nav-btn {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.admin-nav-btn:hover {
+    color: white !important;
+}
+
+.admin-nav-btn.active {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Rediseño del botón de eliminar (Tacho de basura) */
+.table-actions button[title*="Eliminar"] {
+    background: white !important;
+    color: #ef4444 !important;
+    border: 1px solid #fee2e2 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+    border-bottom: 2px solid #fee2e2 !important; /* Mantener estilo 3D pero sutil */
+}
+
+.table-actions button[title*="Eliminar"]:hover {
+    background: #fff1f2 !important;
+    border-color: #fecdd3 !important;
+    transform: translateY(-1px);
+}
+
+.table-actions button[title*="Eliminar"]:active {
+    transform: translateY(1px);
+    border-bottom-width: 0;
+}
+
+/* Alineación de Canchas Uniforme */
+#canchasAdminContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    align-items: stretch; /* Asegura que todas las tarjetas midan lo mismo */
+}
+
+#canchasAdminContainer .card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+#canchasAdminContainer .card-body {
+    flex: 1; /* Pura magia: empuja el footer al fondo */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#canchasAdminContainer .card-footer {
+    background-color: #f8fafc;
+    border-top: 1px solid #edf2f7;
+    padding: 1.2rem;
+    margin-top: auto;
+}
+
+#canchasAdminContainer .cancha-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#canchasAdminContainer .cancha-badge {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+

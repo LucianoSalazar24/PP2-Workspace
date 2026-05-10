@@ -10,6 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Cargar reservas
     cargarMisReservas();
+
+    // Mostrar Panel Admin si es admin
+    const sesion = obtenerSesion();
+    if (sesion && sesion.rol === 'admin') {
+        const linkAdmin = document.getElementById('linkAdmin');
+        if (linkAdmin) linkAdmin.style.display = 'block';
+    }
 });
 
 async function cargarMisReservas() {
@@ -22,11 +29,25 @@ async function cargarMisReservas() {
     }
 
     try {
-        // Obtener historial de reservas filtrado por cliente_id
-        const response = await ReservasAPI.obtenerTodas({ cliente_id: sesion.cliente_id });
+        // Obtener historial de reservas
+        // Si es admin, mostramos TODAS. Si no, solo las suyas.
+        const queryParams = (sesion && sesion.rol === 'admin') ? {} : { cliente_id: sesion.cliente_id };
+        const response = await ReservasAPI.obtenerTodas(queryParams);
         
+        console.log('DATOS RECIBIDOS DEL API:', response.data);
+
         if (response.success && response.data.length > 0) {
-            mostrarTablaReservas(response.data);
+            // Ordenar por fecha (más reciente primero) y luego por hora
+            const reservasOrdenadas = [...response.data].sort((a, b) => {
+                // Forzar comparación robusta combinando fecha y hora
+                const d1 = `${a.fecha}T${a.hora_inicio}`;
+                const d2 = `${b.fecha}T${b.hora_inicio}`;
+                console.log(`Comparando: ${d2} vs ${d1}`);
+                return d2.localeCompare(d1);
+            });
+            
+            console.log('DATOS ORDENADOS:', reservasOrdenadas);
+            mostrarTablaReservas(reservasOrdenadas);
         } else {
             container.innerHTML = `
                 <div class="text-center py-4">
@@ -71,7 +92,7 @@ function mostrarTablaReservas(reservas) {
                                 <td>${MoneyUtils.formato(r.sena_pagada || 0)}</td>
                                 <td>
                                     ${esCancelable ? 
-                                        `<button onclick="solicitarCancelacion(${r.id})" class="btn btn-small btn-outline text-danger">Cancelar</button>` 
+                                        `<button onclick="solicitarCancelacion(${r.id})" class="btn btn-small btn-danger-outline">Cancelar Reserva</button>` 
                                         : '-'}
                                 </td>
                             </tr>

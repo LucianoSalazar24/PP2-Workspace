@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sesion = obtenerSesionActual();
     console.log('Sesión recuperada:', sesion);
     
-    if (sesion && sesion.cliente_id) {
-        // Pre-cargar datos del cliente
+    if (sesion && sesion.cliente_id && sesion.rol !== 'admin') {
+        // Pre-cargar datos solo si es un cliente (no admin)
         clienteActual = {
             id: sesion.cliente_id,
             nombre: sesion.nombre,
@@ -29,7 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
             telefono: sesion.telefono,
             email: sesion.email
         };
-        console.log('Cliente actual configurado:', clienteActual);
+        console.log('Cliente actual configurado (Usuario):', clienteActual);
+    } else if (sesion && sesion.rol === 'admin') {
+        console.log('Modo Admin: Reserva Presencial activa.');
+        // Mostrar aviso de modo presencial
+        const container = document.getElementById('paso1');
+        if (container) {
+            const infoAdmin = document.createElement('div');
+            infoAdmin.className = 'alert alert-info mb-3';
+            infoAdmin.innerHTML = '🛡️ <strong>Modo Administrador:</strong> Puedes buscar un cliente por teléfono o registrar uno nuevo para esta reserva presencial.';
+            container.prepend(infoAdmin);
+        }
     }
     
     inicializarFormulario();
@@ -89,6 +99,31 @@ function inicializarFormulario() {
     }
     
     // Navegación entre pasos
+    // Búsqueda automática de cliente por teléfono (para admin o registro rápido)
+    const inputTel = document.getElementById('telefono');
+    if (inputTel) {
+        inputTel.addEventListener('blur', async () => {
+            const tel = inputTel.value.trim();
+            if (tel.length >= 8) {
+                try {
+                    const response = await ClientesAPI.buscarPorTelefono(tel);
+                    if (response.success && response.data) {
+                        const c = response.data;
+                        document.getElementById('nombre').value = c.nombre;
+                        document.getElementById('apellido').value = c.apellido;
+                        if (document.getElementById('email')) {
+                            document.getElementById('email').value = c.email || '';
+                        }
+                        clienteActual = c;
+                        UIUtils.mostrarExito(`Cliente encontrado: ${c.nombre} ${c.apellido}`);
+                    }
+                } catch (e) {
+                    console.log('Cliente no encontrado, se creará uno nuevo al confirmar.');
+                }
+            }
+        });
+    }
+
     if (btnSiguiente1) {
         btnSiguiente1.addEventListener('click', () => {
             console.log('Click en btnSiguiente1');
@@ -101,7 +136,15 @@ function inicializarFormulario() {
     if (btnSiguiente2) {
         btnSiguiente2.addEventListener('click', () => {
             console.log('Click en btnSiguiente2');
-            cambiarPaso(3);
+            const disponibilidadContainer = document.getElementById('disponibilidadContainer');
+            
+            // Si los horarios no están visibles, primero buscamos disponibilidad
+            if (disponibilidadContainer.classList.contains('d-none')) {
+                verificarDisponibilidad();
+            } else {
+                // Si ya están visibles, validamos y pasamos al paso 3
+                cambiarPaso(3);
+            }
         });
     }
     
@@ -113,22 +156,44 @@ function inicializarFormulario() {
         btnVolver2.addEventListener('click', () => cambiarPaso(2));
     }
     
-    // Cambios en fecha y cancha
+
+        // Si cambia fecha o cancha, ocultamos horarios para forzar nueva verificación
     if (fecha) {
-        fecha.addEventListener('change', verificarDisponibilidad);
+        fecha.addEventListener('change', () => {
+            const disp = document.getElementById('disponibilidadContainer');
+            const sel = document.getElementById('seleccionHorario');
+            if (disp) disp.classList.add('d-none');
+            if (sel) sel.classList.add('d-none');
+        });
     }
     
     if (cancha) {
-        cancha.addEventListener('change', verificarDisponibilidad);
+        cancha.addEventListener('change', () => {
+            const disp = document.getElementById('disponibilidadContainer');
+            const sel = document.getElementById('seleccionHorario');
+            if (disp) disp.classList.add('d-none');
+            if (sel) sel.classList.add('d-none');
+        });
     }
-    
-    // Submit del formulario
     if (formReserva) {
-        formReserva.addEventListener('submit', crearReserva);
+        formReserva.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const paso3Visible = !document.getElementById('paso3').classList.contains('d-none');
+            
+            // Solo procesamos si el usuario explícitamente está en la pantalla de confirmación
+            // Evita envíos accidentales al presionar "Enter" en los pasos previos.
+            if (paso3Visible) {
+                procesarYRedirigirPago();
+            }
+        });
     }
 
-    // Pre-cargar datos del cliente si ya está logueado
-    precargarDatosCliente();
+    // Pre-cargar datos del cliente si ya está logueado (y no es admin)
+    const sesion = obtenerSesionActual();
+    if (sesion && sesion.rol !== 'admin') {
+        precargarDatosCliente();
+    }
     
     console.log('Formulario inicializado correctamente');
 }
@@ -157,10 +222,13 @@ async function buscarCliente() {
             document.getElementById('apellido').value = clienteActual.apellido;
             document.getElementById('email').value = clienteActual.email || '';
             
-            // Deshabilitar campos (cliente ya existe)
-            document.getElementById('nombre').disabled = true;
-            document.getElementById('apellido').disabled = true;
-            document.getElementById('email').disabled = true;
+            // Solo deshabilitar si NO es admin
+            const sesion = obtenerSesionActual();
+            if (sesion && sesion.rol !== 'admin') {
+                document.getElementById('nombre').disabled = true;
+                document.getElementById('apellido').disabled = true;
+                document.getElementById('email').disabled = true;
+            }
             
             UIUtils.mostrarExito('Cliente encontrado');
         }
@@ -189,10 +257,20 @@ async function verificarDisponibilidad() {
     const fecha = document.getElementById('fecha').value;
     const canchaId = document.getElementById('cancha').value;
     
-    if (!fecha || !canchaId) return;
+    if (!fecha || !canchaId) {
+        UIUtils.mostrarError('Por favor selecciona una fecha y una cancha primero.');
+        return;
+    }
     
     try {
+        // Mostrar estado de carga en el botón Siguiente
+        const btnSiguiente = document.getElementById('btnSiguiente2');
+        const originalText = btnSiguiente ? btnSiguiente.innerHTML : 'Siguiente';
+        if (btnSiguiente) btnSiguiente.innerHTML = 'Buscando... <div class="loader-inline"></div>';
+        
         const response = await ReservasAPI.verificarDisponibilidad(fecha, canchaId);
+        
+        if (btnSiguiente) btnSiguiente.innerHTML = originalText;
         
         if (response.success) {
             disponibilidadActual = response.data;
@@ -240,12 +318,12 @@ function mostrarDisponibilidad(datos) {
         
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = `btn ${estaOcupado || estaVencido ? 'btn-danger' : 'btn-outline'}`;
+        btn.className = `btn btn-horario ${estaOcupado || estaVencido ? 'btn-danger' : 'btn-outline'}`;
         btn.textContent = hora;
         btn.disabled = estaOcupado || estaVencido;
         
         if (!estaOcupado && !estaVencido) {
-            btn.addEventListener('click', () => seleccionarHorario(hora));
+            btn.addEventListener('click', () => seleccionarHorario(hora, btn));
         }
         
         container.appendChild(btn);
@@ -253,7 +331,22 @@ function mostrarDisponibilidad(datos) {
 }
 
 // Seleccionar horario de inicio
-function seleccionarHorario(hora) {
+function seleccionarHorario(hora, btnElement) {
+    // Remover clase de selección anterior
+    const botones = document.querySelectorAll('.btn-horario');
+    botones.forEach(b => {
+        if (!b.disabled) {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-outline');
+        }
+    });
+    
+    // Agregar clase de selección al botón clickeado
+    if (btnElement) {
+        btnElement.classList.remove('btn-outline');
+        btnElement.classList.add('btn-primary');
+    }
+
     document.getElementById('horaInicio').value = hora;
     
     // Calcular hora de fin sugerida (1 hora después)
@@ -409,16 +502,16 @@ function mostrarResumen() {
     }
 }
 
-// Crear reserva
-async function crearReserva(e) {
-    e.preventDefault();
-    
-    const btnConfirmar = document.getElementById('btnConfirmar');
-    btnConfirmar.disabled = true;
-    btnConfirmar.textContent = 'Procesando...';
-    
+// Crear reserva y redirigir a la página de pago
+async function procesarYRedirigirPago() {
     try {
-        // Si no existe el cliente, crearlo primero
+        const btnSiguiente = document.querySelector('#paso3 button[type="submit"]');
+        if (btnSiguiente) {
+            btnSiguiente.disabled = true;
+            btnSiguiente.textContent = 'Procesando...';
+        }
+
+        // 1. Obtener o crear el cliente
         if (!clienteActual) {
             const nuevoCliente = {
                 nombre: document.getElementById('nombre').value.trim(),
@@ -435,7 +528,7 @@ async function crearReserva(e) {
             }
         }
         
-        // Crear la reserva
+        // 2. Crear la reserva (quedará en estado "pendiente")
         const datosReserva = {
             cancha_id: parseInt(document.getElementById('cancha').value),
             cliente_id: clienteActual.id,
@@ -445,22 +538,34 @@ async function crearReserva(e) {
             observaciones: document.getElementById('observaciones').value.trim()
         };
 
-        console.log('Datos a enviar:', datosReserva);
+        const responseReserva = await ReservasAPI.crear(datosReserva);
         
-        const response = await ReservasAPI.crear(datosReserva);
-        
-        if (response.success) {
-            alert('¡Reserva creada exitosamente!\n\nPuedes ver los detalles en la sección "Mis Reservas".');
-            window.location.href = 'mis-reservas.html';
-        } else {
-            throw new Error(response.message);
+        if (!responseReserva.success) {
+            throw new Error(responseReserva.message);
         }
+
+        const reservaId = responseReserva.data.id;
+        console.log('✅ Reserva creada con ID:', reservaId);
+
+        // 3. Calcular precio total para pasar a la página de pago
+        const selectCancha = document.getElementById('cancha');
+        const opcionSeleccionada = selectCancha.options[selectCancha.selectedIndex];
+        const precioHora = parseFloat(opcionSeleccionada.dataset.precio);
+        const duracion = HorarioUtils.calcularDuracion(datosReserva.hora_inicio, datosReserva.hora_fin);
+        const precioTotal = precioHora * duracion;
+
+        // 4. Redirigir a pago.html con los parámetros
+        window.location.href = `pago.html?id=${reservaId}&total=${precioTotal}`;
         
     } catch (error) {
-        console.error('Error creando reserva:', error);
-        UIUtils.mostrarError(error.message || 'Error al crear la reserva');
-        btnConfirmar.disabled = false;
-        btnConfirmar.textContent = 'Confirmar Reserva';
+        console.error('Error al procesar reserva:', error);
+        UIUtils.mostrarError(error.message || 'Error al procesar la reserva');
+        
+        const btnSiguiente = document.querySelector('#paso3 button[type="submit"]');
+        if (btnSiguiente) {
+            btnSiguiente.disabled = false;
+            btnSiguiente.textContent = 'Confirmar Reserva';
+        }
     }
 }
 

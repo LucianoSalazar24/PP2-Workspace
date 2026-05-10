@@ -15,7 +15,10 @@ const CONFIG = {
         CLIENTES_BUSCAR: '/clientes/buscar-telefono',
         
         // Canchas
-        CANCHAS: '/canchas'
+        CANCHAS: '/canchas',
+        
+        // Pagos
+        PAGOS: '/pagos'
     },
     
     // Configuraciones de la aplicación

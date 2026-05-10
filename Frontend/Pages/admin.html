@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/admin.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <header class="header">
@@ -18,6 +20,7 @@
             <nav class="nav">
                 <a href="../index.html" class="nav-link">Inicio</a>
                 <a href="reservar.html" class="nav-link">Reservar</a>
+                <a href="mis-reservas.html" class="nav-link">Mis Reservas</a>
                 <a href="admin.html" class="nav-link active">Panel Admin</a>
                 <button onclick="cerrarSesion()" class="btn btn-outline" style="margin-left: 1rem;">
                     Cerrar Sesión
@@ -30,16 +33,20 @@
         <aside class="admin-sidebar">
             <nav class="admin-nav">
                 <button class="admin-nav-btn active" data-section="dashboard">
-                    📊 Dashboard
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
                 </button>
                 <button class="admin-nav-btn" data-section="reservas">
-                    📅 Reservas
+                    <span class="icon">📅</span>
+                    <span>Reservas</span>
                 </button>
                 <button class="admin-nav-btn" data-section="clientes">
-                    👥 Clientes
+                    <span class="icon">👤</span>
+                    <span>Clientes</span>
                 </button>
                 <button class="admin-nav-btn" data-section="canchas">
-                    🏟️ Canchas
+                    <span class="icon">🏟️</span>
+                    <span>Canchas</span>
                 </button>
             </nav>
         </aside>
@@ -48,6 +55,8 @@
             <!-- Dashboard -->
             <section id="dashboard" class="admin-section active">
                 <h2>Dashboard</h2>
+                
+                <div id="alertasDashboardContainer"></div>
                 
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -100,31 +109,63 @@
                     <h2>Gestión de Reservas</h2>
                 </div>
 
-                <div class="card">
-                    <div class="card-body">
-                        <div class="filters-row">
-                            <input type="date" id="filtroFecha" class="form-input" 
-                                   placeholder="Filtrar por fecha">
-                            <select id="filtroEstado" class="form-select">
-                                <option value="">Todos los estados</option>
-                                <option value="pendiente">Pendiente</option>
-                                <option value="confirmada">Confirmada</option>
-                                <option value="cancelada">Cancelada</option>
-                                <option value="completada">Completada</option>
-                                <option value="no_show">No Show</option>
-                            </select>
-                            <button id="btnFiltrarReservas" class="btn btn-secondary">
-                                Buscar
-                            </button>
+                <!-- Pestañas internas de Reservas -->
+                <div class="internal-tabs">
+                    <button class="tab-btn active" data-tab="todas-reservas">Todas las Reservas</button>
+                    <button class="tab-btn" data-tab="futuras-reservas">🔮 Próximas Reservas (Futuras)</button>
+                </div>
+
+                <!-- Contenido: Todas las Reservas -->
+                <div id="todas-reservas" class="tab-pane active">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="filters-row">
+                                <div class="filter-group">
+                                    <label for="filtroFecha">📅 Buscar por Fecha:</label>
+                                    <input type="date" id="filtroFecha" class="form-input">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="filtroEstado">🚥 Estado:</label>
+                                    <select id="filtroEstado" class="form-select">
+                                        <option value="">Todos los estados</option>
+                                        <option value="pendiente">Pendiente</option>
+                                        <option value="confirmada">Confirmada</option>
+                                        <option value="cancelada">Cancelada</option>
+                                        <option value="completada">Completada</option>
+                                        <option value="no_show">No Show</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="filtroCliente">👤 Buscar por Cliente:</label>
+                                    <input type="text" id="filtroCliente" class="form-input" 
+                                           placeholder="Nombre, apellido o Tel...">
+                                </div>
+                                <button id="btnFiltrarReservas" class="btn btn-primary">
+                                    🔍 BUSCAR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <div id="reservasTableContainer">
+                                <div class="loader-container">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="card mt-3">
-                    <div class="card-body">
-                        <div id="reservasTableContainer">
-                            <div class="loader-container">
-                                <div class="spinner"></div>
+                <!-- Contenido: Reservas Futuras -->
+                <div id="futuras-reservas" class="tab-pane">
+                    <div class="card">
+                        <div class="card-body">
+                            <div id="reservasFuturasContainer">
+                                <div class="loader-container">
+                                    <div class="spinner"></div>
+                                </div>
                             </div>
                         </div>
                     </div>

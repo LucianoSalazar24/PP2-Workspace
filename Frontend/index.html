@@ -6,6 +6,8 @@
     <title>Reserva de Canchas de Fútbol</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/components.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 <!-- Header para index.html -->
@@ -19,7 +21,7 @@
             <a href="index.html" class="nav-link active">Inicio</a>
             <a href="#" onclick="irAReservar(event)" class="nav-link">Reservar</a>
             <a href="Pages/mis-reservas.html" id="linkMisReservas" class="nav-link" style="display: none;">Mis Reservas</a>
-            <a href="#" onclick="irAAdmin(event)" class="nav-link">Panel Admin</a>
+            <a href="#" id="linkAdmin" onclick="irAAdmin(event)" class="nav-link" style="display: none;">Panel Admin</a>
             
             <!-- Botón de cerrar sesión (se muestra solo si hay sesión) -->
             <button id="btnCerrarSesion" onclick="cerrarSesionGlobal()" class="btn btn-outline" style="display: none; padding: 0.5rem 1rem; font-size: 0.9rem;">
@@ -49,6 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (usuarioActual) {
             usuarioActual.textContent = `👤 ${sesion.nombre}`;
             usuarioActual.style.display = 'block';
+        }
+        
+        // Mostrar Panel Admin solo si es admin
+        const linkAdmin = document.getElementById('linkAdmin');
+        if (linkAdmin && sesion.rol === 'admin') {
+            linkAdmin.style.display = 'block';
         }
     }
 });
@@ -91,8 +99,9 @@ function irAAdmin(e) {
     }
 }
 
-function cerrarSesionGlobal() {
-    if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+async function cerrarSesionGlobal() {
+    const confirmado = await UIUtils.confirmar('¿Estás seguro que deseas cerrar sesión?');
+    if (confirmado) {
         sessionStorage.removeItem('sesion');
         window.location.href = 'index.html';
     }

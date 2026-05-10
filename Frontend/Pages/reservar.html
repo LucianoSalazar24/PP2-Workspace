@@ -6,6 +6,8 @@
     <title>Reservar Cancha - FutbolReservas</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/components.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <!-- Header para reservar.html - Reemplaza el header existente -->
@@ -19,13 +21,13 @@
             <a href="../index.html" class="nav-link">Inicio</a>
             <a href="reservar.html" class="nav-link active">Reservar</a>
             <a href="mis-reservas.html" class="nav-link">Mis Reservas</a>
-            <a href="#" onclick="irAAdminDesdeReserva(event)" class="nav-link">Panel Admin</a>
+            <a href="#" id="linkAdmin" onclick="irAAdminDesdeReserva(event)" class="nav-link" style="display: none;">Panel Admin</a>
             
             <!-- Mostrar usuario actual -->
             <span id="usuarioActual" style="color: white; font-size: 0.9rem; background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 6px;"></span>
             
             <!-- Botón de cerrar sesión -->
-            <button onclick="cerrarSesionDesdeReserva()" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: white;">
+            <button onclick="cerrarSesion()" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: white;">
                 🚪 Cerrar Sesión
             </button>
         </nav>
@@ -41,22 +43,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sesionStr && usuarioActual) {
         const sesion = JSON.parse(sesionStr);
         usuarioActual.textContent = `👤 ${sesion.nombre} ${sesion.apellido}`;
+        
+        // Mostrar Panel Admin solo si es admin
+        const linkAdmin = document.getElementById('linkAdmin');
+        if (linkAdmin && sesion.rol === 'admin') {
+            linkAdmin.style.display = 'block';
+        }
     }
 });
 
-function irAAdminDesdeReserva(e) {
+async function irAAdminDesdeReserva(e) {
     e.preventDefault();
     
-    if (confirm('Para acceder al Panel Admin debes cerrar tu sesión actual. ¿Continuar?')) {
+    const confirmado = await UIUtils.confirmar('Para acceder al Panel Admin debes cerrar tu sesión actual. ¿Continuar?');
+    if (confirmado) {
         sessionStorage.removeItem('sesion');
         window.location.href = 'login.html?admin=true';
-    }
-}
-
-function cerrarSesionDesdeReserva() {
-    if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
-        sessionStorage.removeItem('sesion');
-        window.location.href = '../index.html';
     }
 }
 </script>
@@ -140,12 +142,12 @@ function cerrarSesionDesdeReserva() {
                             <div id="seleccionHorario" class="d-none mt-3">
                                 <div class="form-group">
                                     <label class="form-label required" for="horaInicio">Hora de Inicio</label>
-                                    <input type="time" id="horaInicio" class="form-input" required>
+                                    <input type="text" id="horaInicio" class="form-input" placeholder="HH:MM" pattern="(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]" title="Formato 24hs (Ej: 16:00)" required>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label class="form-label required" for="horaFin">Hora de Fin</label>
-                                    <input type="time" id="horaFin" class="form-input" required>
+                                    <input type="text" id="horaFin" class="form-input" placeholder="HH:MM" pattern="(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]" title="Formato 24hs (Ej: 17:00)" required>
                                 </div>
                             </div>
                             
@@ -208,6 +210,11 @@ function cerrarSesionDesdeReserva() {
         }
     </script>
     <script src="../js/reservas.js"></script>
-    
+
+    <!-- ============================================================ -->
+    <!-- FIN RESERVAS -->
+    <!-- ============================================================ -->
+
+
 </body>
 </html>
